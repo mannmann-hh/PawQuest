@@ -1,0 +1,25 @@
+{
+  "flutter": {
+    "platforms": {
+      "ios": {
+        "default": {
+          "projectId": "pawquest-e08af",
+          "appId": "1:318001829934:ios:76e86a65efc88c7b9e27bf",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "pawquest-e08af",
+          "configurations": {
+            "web": "1:318001829934:web:5f36273619e84c179e27bf"
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}

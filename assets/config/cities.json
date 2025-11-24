@@ -1,0 +1,148 @@
+[
+  {
+    "name": "Como",
+    "badge": "0Como.png",
+    "order": 0,
+    "stepRequired": 0,
+    "x": 400,
+    "y": 210,
+    "backgroundAsset": "assets/images/backgrounds/city0.jpeg"
+  },
+  {
+    "name": "Milan",
+    "badge": "1Milan.png",
+    "order": 1,
+    "stepRequired": 1000,
+    "x": 400,
+    "y": 250,
+    "backgroundAsset": "assets/images/backgrounds/city1.jpeg"
+  },
+  {
+    "name": "Turin",
+    "badge": "2Turin.png",
+    "order": 2,
+    "stepRequired": 4000,
+    "x": 200,
+    "y": 250,
+    "backgroundAsset": "assets/images/backgrounds/city2.jpeg"
+  },
+  {
+    "name": "Genova",
+    "badge": "3Genova.png",
+    "order": 3,
+    "stepRequired": 6000,
+    "x": 250,
+    "y": 400,
+    "backgroundAsset": "assets/images/backgrounds/city3.jpeg"
+  },
+  {
+    "name": "Pisa",
+    "badge": "4Pisa.png",
+    "order": 4,
+    "stepRequired": 10000,
+    "x": 270,
+    "y": 300,
+    "backgroundAsset": "assets/images/backgrounds/city4.jpeg"
+  },
+  {
+    "name": "Venice",
+    "badge": "5Venice.png",
+    "order": 5,
+    "stepRequired": 12000,
+    "x": 800,
+    "y": 280,
+    "backgroundAsset": "assets/images/backgrounds/city5.jpeg"
+  },
+  {
+    "name": "Florence",
+    "badge": "6Florence.png",
+    "order": 6,
+    "stepRequired": 14000,
+    "x": 290,
+    "y": 300,
+    "backgroundAsset": "assets/images/backgrounds/city6.jpeg"
+  },
+  {
+    "name": "Bologna",
+    "badge": "7Bologna.png",
+    "order": 7,
+    "stepRequired": 18000,
+    "x": 320,
+    "y": 250,
+    "backgroundAsset": "assets/images/backgrounds/city7.jpeg"
+  },
+  {
+    "name": "SanMarino",
+    "badge": "8SanMarino.png",
+    "order": 8,
+    "stepRequired": 22000,
+    "x": 400,
+    "y": 290,
+    "backgroundAsset": "assets/images/backgrounds/city8.jpeg"
+  },
+  {
+    "name": "Rome",
+    "badge": "9Roma.png",
+    "order": 9,
+    "stepRequired": 26000,
+    "x": 290,
+    "y": 550,
+    "backgroundAsset": "assets/images/backgrounds/city9.jpeg"
+  },
+
+  {
+    "name": "Abruzzo",
+    "badge": "10Abruzzo.png",
+    "order": 10,
+    "stepRequired": 33000,
+    "x": 400,
+    "y":560,
+    "backgroundAsset": "assets/images/backgrounds/city10.jpeg"
+  },
+  {
+    "name": "Naples",
+    "badge": "11Naples.png",
+    "order": 11,
+    "stepRequired": 37000,
+    "x": 400,
+    "y": 700,
+    "backgroundAsset": "assets/images/backgrounds/city11.jpeg"
+  },
+  {
+    "name": "Caserta",
+    "badge": "12Caserta.png",
+    "order": 12,
+    "stepRequired": 39000,
+    "x": 450,
+    "y": 680,
+    "backgroundAsset": "assets/images/backgrounds/city12.jpeg"
+  },
+  {
+    "name": "AmalfiCoast",
+    "badge": "13AmalfiCoast.png",
+    "order": 13,
+    "stepRequired": 45000,
+    "x": 450,
+    "y": 760,
+    "backgroundAsset": "assets/images/backgrounds/city13.jpeg"
+  },
+  {
+    "name": "Sicily",
+    "badge": "14Sicily.png",
+    "order": 14,
+    "stepRequired": 60000,
+    "x": 290,
+    "y": 800,
+    "backgroundAsset": "assets/images/backgrounds/city14.jpeg"
+  },
+  {
+    "name": "Sardegna",
+    "badge": "15Sardegna.png",
+    "order": 15,
+    "stepRequired": 70000,
+    "x": 200,
+    "y": 650,
+    "backgroundAsset": "assets/images/backgrounds/city15.jpeg"
+  }
+
+]

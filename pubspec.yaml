@@ -1,0 +1,68 @@
+name: pawquest
+description: A new Flutter project.
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 0.0.1+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI & 字体
+  google_fonts: ^6.2.1
+  fl_chart: ^0.69.0
+
+  # 音频（新版，已解决 http 冲突）
+  audioplayers: ^6.5.1
+
+  # Firebase（保持同一主版本）
+  firebase_core: ^2.32.0
+  firebase_auth: ^4.20.0
+  cloud_firestore: ^4.17.5
+  firebase_storage: ^11.7.7
+
+  # App 逻辑
+  provider: ^6.1.5
+  english_words: ^4.0.0
+  pedometer: ^4.1.1
+  file_picker: ^5.5.0   
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.3
+
+
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/images/backgrounds/
+    - assets/images/cats_profile/
+    - assets/images/cats/
+    - assets/images/Italy_map.png
+    - assets/images/badges/
+    - assets/images/icons/
+    - assets/images/default_profile.png
+    - assets/config/cities.json
+    - assets/images/forum_background.png
+    - assets/images/food/
+    - assets/images/tape.png
+    - assets/images/title/
+    - assets/images/steps.png
+    - assets/images/talk_bg.jpeg
+    - assets/images/profiles_bg.jpeg
+fonts:
+    - family: Fredoka
+      fonts:
+        - asset: assets/fonts/Fredoka-Regular.ttf
+        - asset: assets/fonts/Fredoka-Bold.ttf
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Regular.ttf
+        - asset: assets/fonts/Nunito-Bold.ttf
