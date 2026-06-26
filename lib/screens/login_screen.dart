@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'main_screen.dart';
+import 'responsive_main_screen.dart';
 import 'register_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:pawquest/providers/theme_provider.dart';
@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
+        MaterialPageRoute(builder: (context) => const ResponsiveMainScreen()),
       );
     } on FirebaseAuthException catch (e) {
       _showError(e.message ?? 'Login failed');

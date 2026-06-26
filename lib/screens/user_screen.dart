@@ -9,7 +9,7 @@ import 'edit_profile_screen.dart';
 import 'notifications_screen.dart';
 import 'step_history_screen.dart';
 import '../widgets/custom_bottom_bar.dart';
-import 'main_screen.dart';
+import 'responsive_main_screen.dart';
 import 'login_screen.dart';
 import '../services/auth_service.dart';
 
@@ -245,7 +245,7 @@ class _UserScreenState extends State<UserScreen> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => MainScreen(initialIndex: index),
+                      builder: (_) => ResponsiveMainScreen(initialIndex: index),
                     ),
                   );
                 },

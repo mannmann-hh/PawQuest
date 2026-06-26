@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:pawquest/providers/theme_provider.dart';
 import 'package:pawquest/theme/app_palette.dart';
-import 'main_screen.dart';
+import 'responsive_main_screen.dart';
 
 class ChooseCatScreen extends StatefulWidget {
   const ChooseCatScreen({super.key});
@@ -17,7 +17,15 @@ class _ChooseCatScreenState extends State<ChooseCatScreen> {
   AppPalette p = AppPalette.all.first;
 
   final List<String> cats = [
-    'cat1', 'cat2', 'cat3', 'cat4', 'cat5', 'cat6', 'cat7', 'cat8', 'cat9'
+    'cat1',
+    'cat2',
+    'cat3',
+    'cat4',
+    'cat5',
+    'cat6',
+    'cat7',
+    'cat8',
+    'cat9'
   ];
 
   String? selectedCat;
@@ -57,7 +65,7 @@ class _ChooseCatScreenState extends State<ChooseCatScreen> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const MainScreen()),
+        MaterialPageRoute(builder: (_) => const ResponsiveMainScreen()),
       );
     } catch (e) {
       if (!mounted) return;
@@ -182,8 +190,8 @@ class _ChooseCatScreenState extends State<ChooseCatScreen> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18)),
-                  textStyle:
-                      const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  textStyle: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 child: _saving
                     ? const SizedBox(

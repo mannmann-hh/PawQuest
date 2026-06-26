@@ -10,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pawquest/screens/step_history_screen.dart';
 import 'package:pawquest/services/watch_service.dart';
+
 class City {
   final String name;
   final int stepRequired;
@@ -46,8 +47,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       await _loadStepsAndUpdateProvider(context);
       if (!mounted) return;
       final sp = Provider.of<StepProvider>(context, listen: false);
-      sp.startListening();
-      sp.requestHealthAccess().then((_) => sp.syncFromHealth());
+      if (MediaQuery.of(context).size.shortestSide < 600) {
+        sp.startListening();
+        sp.requestHealthAccess().then((_) => sp.syncFromHealth());
+      }
       final dq = context.read<DailyQuestProvider>();
       if (dq.weather == null && !dq.isLoading) {
         dq.loadTodayQuest(sp.todaySteps);
@@ -92,8 +95,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String _dateLabel() {
     const wd = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const mo = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     final n = DateTime.now();
     return '${wd[n.weekday - 1]}, ${mo[n.month - 1]} ${n.day}';
@@ -354,7 +367,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         color: Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(28),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0, 6)),
+          BoxShadow(
+              color: Colors.black12, blurRadius: 12, offset: Offset(0, 6)),
         ],
       ),
       child: Column(

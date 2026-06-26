@@ -5,7 +5,7 @@ import '../providers/theme_provider.dart';
 import '../theme/app_palette.dart';
 import '../services/route_manager.dart';
 import 'city_detail_screen.dart';
-import 'main_screen.dart';
+import 'responsive_main_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 Widget roundedButton({
@@ -230,7 +230,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
                       context,
                       MaterialPageRoute(
                           builder: (context) =>
-                              const MainScreen(initialIndex: 0)),
+                              const ResponsiveMainScreen(initialIndex: 0)),
                       (route) => false,
                     );
                   },
@@ -244,7 +244,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
                         context,
                         MaterialPageRoute(
                             builder: (context) =>
-                                const MainScreen(initialIndex: 1)),
+                                const ResponsiveMainScreen(initialIndex: 1)),
                         (route) => false);
                   },
                 ),
