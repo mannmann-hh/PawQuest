@@ -46,9 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
       // 从 Firestore 读取步数并更新 Provider
       await _loadStepsAndUpdateProvider(context);
 
+      if (!mounted) return;
+
       // 开始步数监听
-      final sp = Provider.of<StepProvider>(context, listen: false);
-      sp.startListening();
+      if (MediaQuery.of(context).size.shortestSide < 600) {
+        final sp = Provider.of<StepProvider>(context, listen: false);
+        sp.startListening();
+      }
     });
   }
   // ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐

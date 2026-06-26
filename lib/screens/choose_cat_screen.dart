@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'main_screen.dart';
-
+import 'responsive_main_screen.dart';
 
 class ChooseCatScreen extends StatefulWidget {
   @override
@@ -11,9 +10,15 @@ class ChooseCatScreen extends StatefulWidget {
 
 class _ChooseCatScreenState extends State<ChooseCatScreen> {
   final List<String> cats = [
-    'cat1', 'cat2', 'cat3',
-    'cat4', 'cat5', 'cat6',
-    'cat7', 'cat8', 'cat9',
+    'cat1',
+    'cat2',
+    'cat3',
+    'cat4',
+    'cat5',
+    'cat6',
+    'cat7',
+    'cat8',
+    'cat9',
   ];
 
   String? selectedCat;
@@ -27,7 +32,10 @@ class _ChooseCatScreenState extends State<ChooseCatScreen> {
 
   Future<void> _loadSelectedCat() async {
     if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .get();
       setState(() {
         selectedCat = doc.data()?['cat'];
       });
@@ -38,7 +46,10 @@ class _ChooseCatScreenState extends State<ChooseCatScreen> {
     if (user != null) {
       try {
         debugPrint('Updating cat to $catName');
-        await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user!.uid)
+            .update({
           'cat': catName,
         });
         setState(() {
@@ -123,7 +134,8 @@ class _ChooseCatScreenState extends State<ChooseCatScreen> {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => const MainScreen()),
+                  MaterialPageRoute(
+                      builder: (_) => const ResponsiveMainScreen()),
                 );
               },
               child: const Text('Save and return to home page'),

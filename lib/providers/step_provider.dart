@@ -56,6 +56,8 @@ class StepProvider with ChangeNotifier {
 
   /// Start listening to step sensor (REAL DEVICE)
   void startListening() {
+    if (_subscription != null) return;
+
     _subscription = Pedometer.stepCountStream.listen(
       _onStep,
       onError: (error) => print('步数监听错误: $error'),
@@ -128,6 +130,7 @@ class StepProvider with ChangeNotifier {
   /// Stop listener
   void disposeListener() {
     _subscription?.cancel();
+    _subscription = null;
   }
 
   /// Reset when logout

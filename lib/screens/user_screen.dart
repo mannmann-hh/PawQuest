@@ -3,11 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'choose_cat_screen.dart';
 import '../widgets/custom_bottom_bar.dart';
-import 'main_screen.dart';
+import 'responsive_main_screen.dart';
 import 'login_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:pawquest/providers/step_provider.dart';
-
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -253,7 +252,7 @@ class _UserScreenState extends State<UserScreen> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => MainScreen(initialIndex: index),
+                      builder: (_) => ResponsiveMainScreen(initialIndex: index),
                     ),
                   );
                 },
