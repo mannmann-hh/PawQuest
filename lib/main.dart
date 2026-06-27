@@ -9,7 +9,6 @@ import 'package:pawquest/providers/step_provider.dart';
 import 'package:pawquest/screens/main_screen.dart'; // 主界面
 import 'package:pawquest/screens/splash_screen.dart'; // 启动页
 import 'package:pawquest/screens/login_screen.dart'; // 登录页
-import 'package:pawquest/init/init_cities_firestore.dart'; // 初始化城市数据
 import 'package:pawquest/screens/world_map_screen.dart';
 import 'package:pawquest/screens/foodsticker_screen.dart';
 import 'package:pawquest/screens/weather_screen.dart';
@@ -21,9 +20,6 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  // 上传城市数据（仅首次运行）
-  await uploadCitiesToFirestore();
 
   // 🔥 StepProvider 只初始化一次（关键）
   final stepProvider = StepProvider();
