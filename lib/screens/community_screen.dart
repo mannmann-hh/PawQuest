@@ -114,7 +114,7 @@ class CommunityScreen extends StatelessWidget {
             onPressed: () async {
               final content = controller.text.trim();
               if (content.isNotEmpty && user != null) {
-                final nickname = await _resolveNickname(user.uid);
+                final nickname = await _forum.resolveNickname(user.uid);
                 await FirebaseFirestore.instance.collection('posts').add({
                   'authorId': user.uid,
                   'authorName': nickname,
@@ -131,20 +131,6 @@ class CommunityScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  /// Read the nickname from the user's Firestore profile so posts show the
-  /// chosen name instead of the always-null Auth displayName.
-  Future<String> _resolveNickname(String uid) async {
-    try {
-      final doc =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      final nickname = (doc.data()?['nickname'] as String?)?.trim();
-      if (nickname != null && nickname.isNotEmpty) return nickname;
-    } catch (_) {
-      // fall through to default
-    }
-    return 'Anonymous user';
   }
 }
 

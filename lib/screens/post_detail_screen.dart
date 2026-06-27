@@ -223,16 +223,7 @@ class PostDetailScreen extends StatelessWidget {
           onPressed: () async {
             final text = _commentController.text.trim();
             if (text.isNotEmpty && user != null) {
-              await FirebaseFirestore.instance
-                  .collection('posts')
-                  .doc(postId)
-                  .collection('comments')
-                  .add({
-                'authorId': user.uid,
-                'authorName': user.displayName ?? 'Unknown User',
-                'content': text,
-                'timestamp': FieldValue.serverTimestamp(),
-              });
+              await _forum.addComment(postId, text);
               _commentController.clear();
             }
           },

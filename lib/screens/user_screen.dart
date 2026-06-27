@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'choose_cat_screen.dart';
+import 'notifications_screen.dart';
 import '../widgets/custom_bottom_bar.dart';
 import 'main_screen.dart';
 import 'login_screen.dart';
@@ -193,6 +194,17 @@ class _UserScreenState extends State<UserScreen> {
                                   SizedBox(height: 8),
                                   _buildStyledButton(
                                       context,
+                                      "Notifications",
+                                      () => Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const NotificationsScreen()),
+                                          ),
+                                      const Color(0xFFEE9B8C)),
+                                  SizedBox(height: 12),
+                                  _buildStyledButton(
+                                      context,
                                       "Modify User Name",
                                       () => _changeDisplayName(context),
                                       Colors.amber),
@@ -248,7 +260,7 @@ class _UserScreenState extends State<UserScreen> {
                 ],
               ),
               bottomNavigationBar: CustomBottomBar(
-                currentIndex: 3,
+                currentIndex: 4,
                 onTap: (index) {
                   Navigator.pushReplacement(
                     context,
