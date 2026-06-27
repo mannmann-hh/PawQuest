@@ -159,7 +159,7 @@ class _PostCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
-      color: Colors.white.withOpacity(0.92),
+      color: Colors.white.withValues(alpha: 0.92),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () => Navigator.push(

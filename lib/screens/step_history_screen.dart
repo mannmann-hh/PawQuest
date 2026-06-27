@@ -101,7 +101,7 @@ Widget buildBarChart(List<QueryDocumentSnapshot> docs) {
             backDrawRodData: BackgroundBarChartRodData(
               show: true,
               toY: 100000,
-              color: const Color(0xFFF8D66D).withOpacity(0.15),
+              color: const Color(0xFFF8D66D).withValues(alpha: 0.15),
             ),
           ),
         ],
@@ -186,7 +186,7 @@ Widget buildBarChart(List<QueryDocumentSnapshot> docs) {
     return Card(
       elevation: 2,
       color: Colors.white,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ListTile(
         leading: const Icon(Icons.calendar_today, color: Color.fromARGB(255, 105, 182, 210)),

@@ -43,6 +43,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'createdAt': Timestamp.now(),
       });
 
+      if (!mounted) return;
+
       //3. 处理步数 
       final stepProvider =
           Provider.of<StepProvider>(context, listen: false);
@@ -99,7 +101,7 @@ Widget build(BuildContext context) {
         // 2️⃣ 半透明遮罩（保证输入框可见）
         Positioned.fill(
           child: Container(
-            color: Colors.white.withOpacity(0.4),
+            color: Colors.white.withValues(alpha: 0.4),
           ),
         ),
 

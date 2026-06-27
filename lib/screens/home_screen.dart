@@ -45,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // 从 Firestore 读取步数并更新 Provider
       await _loadStepsAndUpdateProvider(context);
+      if (!mounted) return;
 
       // 开始步数监听
       final sp = Provider.of<StepProvider>(context, listen: false);
@@ -72,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final steps = context.watch<StepProvider>().steps ?? 0;
+    final steps = context.watch<StepProvider>().steps;
     final stepProvider = Provider.of<StepProvider>(context, listen: false);
     final user = FirebaseAuth.instance.currentUser;
 

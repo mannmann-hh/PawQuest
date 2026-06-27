@@ -15,7 +15,7 @@ class AppTheme {
       seedColor: puddingYellow,
       primary: puddingYellow,
       secondary: puddingOrange,
-      background: puddingBackground,
+      surface: puddingBackground,
     ),
 
     // AppBar
@@ -50,7 +50,7 @@ class AppTheme {
 cardTheme: CardThemeData(
   color: Colors.white,
   elevation: 4,
-  shadowColor: Colors.black.withOpacity(0.1),
+  shadowColor: Colors.black.withValues(alpha: 0.1),
   surfaceTintColor: Colors.transparent, // 禁用 M3 默认色调
   shape: RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(20),

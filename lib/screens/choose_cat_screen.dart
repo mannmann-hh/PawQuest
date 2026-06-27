@@ -8,7 +8,7 @@ class ChooseCatScreen extends StatefulWidget {
   const ChooseCatScreen({super.key});
 
   @override
-  _ChooseCatScreenState createState() => _ChooseCatScreenState();
+  State<ChooseCatScreen> createState() => _ChooseCatScreenState();
 }
 
 class _ChooseCatScreenState extends State<ChooseCatScreen> {
@@ -43,6 +43,7 @@ class _ChooseCatScreenState extends State<ChooseCatScreen> {
         await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
           'cat': catName,
         });
+        if (!mounted) return;
         setState(() {
           selectedCat = catName;
         });

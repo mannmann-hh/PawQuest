@@ -56,6 +56,8 @@ class _UserScreenState extends State<UserScreen> {
           .doc(user!.uid)
           .update({'nickname': confirm});
 
+      if (!mounted) return;
+
       setState(() {
         user = FirebaseAuth.instance.currentUser;
       });
@@ -237,6 +239,8 @@ class _UserScreenState extends State<UserScreen> {
 
                                       // ⭐ 4. 退出 Firebase 登录
                                       await FirebaseAuth.instance.signOut();
+
+                                      if (!mounted) return;
 
                                       // ⭐ 5. 跳转回登录界面
                                       Navigator.pushReplacement(

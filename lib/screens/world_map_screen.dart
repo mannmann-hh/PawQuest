@@ -94,7 +94,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
                     context: context,
                     barrierDismissible: true,
                     barrierLabel: '',
-                    barrierColor: Colors.black.withOpacity(0.2), // 半透明背景
+                    barrierColor: Colors.black.withValues(alpha: 0.2), // 半透明背景
                     pageBuilder: (_, __, ___) => const SizedBox(),
                     transitionBuilder: (_, anim, __, child) {
                       return Transform.scale(
@@ -106,7 +106,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
                               width: 300,
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.95),
+                                color: Colors.white.withValues(alpha: 0.95),
                                 borderRadius: BorderRadius.circular(32),
                               ),
                               child: Column(
