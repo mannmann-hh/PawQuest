@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<List<City>> loadCities(BuildContext context) async {
     final jsonStr = await DefaultAssetBundle.of(context)
         .loadString('assets/config/cities.json');
-    print('✅ Loaded cities.json content: $jsonStr');
+    debugPrint('✅ Loaded cities.json content: $jsonStr');
     final List decoded = jsonDecode(jsonStr);
     return decoded.map((e) => City.fromJson(e)).toList();
   }

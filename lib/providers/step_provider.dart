@@ -58,7 +58,7 @@ class StepProvider with ChangeNotifier {
   void startListening() {
     _subscription = Pedometer.stepCountStream.listen(
       _onStep,
-      onError: (error) => print('步数监听错误: $error'),
+      onError: (error) => debugPrint('步数监听错误: $error'),
     );
   }
 
@@ -122,7 +122,7 @@ class StepProvider with ChangeNotifier {
 
     await _dailyQuestProvider?.syncSteps(safeDailySteps);
 
-    print("🔥 Daily steps saved: $safeDailySteps for $dateStr");
+    debugPrint("🔥 Daily steps saved: $safeDailySteps for $dateStr");
   }
 
   /// Stop listener

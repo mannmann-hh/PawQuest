@@ -81,7 +81,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
 
           /// 城市徽章标记
           ...unlockedCities.map((city) {
-            print(city);
+            debugPrint('$city');
             double x = city['x'] / 1000 * screenWidth;
             double y = city['y'] / 1000 * screenHeight;
 
