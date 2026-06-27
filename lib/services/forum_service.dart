@@ -106,10 +106,20 @@ class ForumService {
 
   // --------------------------------------------------------------- comments
 
-  /// Adds a comment to a post and notifies the post author (unless the
-  /// commenter is the author). Stores the commenter's nickname, not the
-  /// always-null Auth displayName.
-  Future<void> addComment(String postId, String text) async {
+  /// Adds a comment, or a reply to an existing comment when [parentId] is
+  /// given. Stores the author's nickname (not the always-null Auth
+  /// displayName) and a `parentId` field (null for top-level comments).
+  ///
+  /// Notifications:
+  /// - a top-level comment notifies the post author
+  /// - a reply notifies the author of the comment being replied to
+  /// (in both cases only when the actor is not the recipient).
+  Future<void> addComment(
+    String postId,
+    String text, {
+    String? parentId,
+    String? parentAuthorId,
+  }) async {
     final uid = _auth.currentUser?.uid;
     final body = text.trim();
     if (uid == null || body.isEmpty) return;
@@ -118,31 +128,64 @@ class ForumService {
     final postRef = _db.collection('posts').doc(postId);
     final postSnap = await postRef.get();
     final postData = postSnap.data() as Map<String, dynamic>?;
+    final preview = _preview(postData?['content']);
 
     await postRef.collection('comments').add({
       'authorId': uid,
       'authorName': actorName,
       'content': body,
+      'parentId': parentId, // null for top-level comments
       'timestamp': FieldValue.serverTimestamp(),
     });
 
-    final authorId = postData?['authorId'] as String?;
-    if (authorId != null && authorId != uid) {
-      await _db
-          .collection('users')
-          .doc(authorId)
-          .collection('notifications')
-          .add({
-        'type': 'comment',
-        'postId': postId,
-        'postPreview': _preview(postData?['content']),
-        'actorId': uid,
-        'actorName': actorName,
-        'commentText': body,
-        'read': false,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+    if (parentId == null) {
+      // Top-level comment -> notify the post author.
+      final authorId = postData?['authorId'] as String?;
+      if (authorId != null && authorId != uid) {
+        await _addNotification(
+          toUid: authorId,
+          type: 'comment',
+          postId: postId,
+          postPreview: preview,
+          actorId: uid,
+          actorName: actorName,
+          commentText: body,
+        );
+      }
+    } else if (parentAuthorId != null && parentAuthorId != uid) {
+      // Reply -> notify the author of the comment being replied to.
+      await _addNotification(
+        toUid: parentAuthorId,
+        type: 'reply',
+        postId: postId,
+        postPreview: preview,
+        actorId: uid,
+        actorName: actorName,
+        commentText: body,
+      );
     }
+  }
+
+  /// Writes a single notification document under the recipient's profile.
+  Future<void> _addNotification({
+    required String toUid,
+    required String type,
+    required String postId,
+    required String postPreview,
+    required String actorId,
+    required String actorName,
+    required String commentText,
+  }) async {
+    await _db.collection('users').doc(toUid).collection('notifications').add({
+      'type': type,
+      'postId': postId,
+      'postPreview': postPreview,
+      'actorId': actorId,
+      'actorName': actorName,
+      'commentText': commentText,
+      'read': false,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
   }
 
   // ---------------------------------------------------------- notifications

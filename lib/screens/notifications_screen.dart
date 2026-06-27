@@ -73,9 +73,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ts is Timestamp ? ts.toDate().toString().substring(0, 16) : '';
 
               final isLike = type == 'like';
-              final title = isLike
-                  ? '$actor liked your post'
-                  : '$actor commented on your post';
+              final isReply = type == 'reply';
+              final String title;
+              if (isLike) {
+                title = '$actor liked your post';
+              } else if (isReply) {
+                title = '$actor replied to your comment';
+              } else {
+                title = '$actor commented on your post';
+              }
               final subtitle = isLike
                   ? '“$preview”'
                   : '“${data['commentText'] ?? ''}”';
