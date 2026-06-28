@@ -12,7 +12,7 @@ class StepHistoryScreen extends StatelessWidget {
 
     if (uid == null) {
       return const Scaffold(
-        body: Center(child: Text("请先登录")),
+        body: Center(child: Text("Please log in first")),
       );
     }
 
@@ -26,7 +26,7 @@ class StepHistoryScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFFFF6EB),
       appBar: AppBar(
         title: const Text(
-          '每日步数记录',
+          'Step History',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFFF8D66D), // 主色
@@ -42,7 +42,7 @@ class StepHistoryScreen extends StatelessWidget {
           final docs = snapshot.data!.docs.reversed.toList();
 
           if (docs.isEmpty) {
-            return const Center(child: Text("暂无记录"));
+            return const Center(child: Text("No records yet"));
           }
 
           return ListView(
@@ -52,7 +52,7 @@ class StepHistoryScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               const Text(
-                "每日明细",
+                "Daily Details",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -74,7 +74,7 @@ class StepHistoryScreen extends StatelessWidget {
   // -------------------------------
 Widget buildBarChart(List<QueryDocumentSnapshot> docs) {
   if (docs.isEmpty) {
-    return const Center(child: Text("暂无数据可显示图表"));
+    return const Center(child: Text("No data to chart yet"));
   }
 
   // ----------- 1. 取最近 7 天（从旧到新）-----------
@@ -189,7 +189,7 @@ Widget buildBarChart(List<QueryDocumentSnapshot> docs) {
       shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ListTile(
-        leading: const Icon(Icons.calendar_today, color: Color.fromARGB(255, 105, 182, 210)),
+        leading: const Icon(Icons.calendar_today, color: Color(0xFFF77F42)),
         title: Text(
           data['date'] ?? '',
           style: const TextStyle(
@@ -198,7 +198,7 @@ Widget buildBarChart(List<QueryDocumentSnapshot> docs) {
           ),
         ),
         trailing: Text(
-          "${data['daily']} 步",
+          "${data['daily']} steps",
           style: const TextStyle(
             fontSize: 16,
             color: Color(0xFF6B4F3A),

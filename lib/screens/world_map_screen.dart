@@ -16,7 +16,7 @@ Widget roundedButton({
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF546E7A),
+        color: const Color(0xFFF8D66D),
         borderRadius: BorderRadius.circular(30),
         boxShadow: const [
           BoxShadow(
@@ -29,7 +29,7 @@ Widget roundedButton({
       child: Text(
         label,
         style: const TextStyle(
-          color: Colors.white,
+          color: Color(0xFF6C4A2F),
           fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
@@ -195,7 +195,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
                   },
                 ),
                 roundedButton(
-                  label: 'Gourmet Food',
+                  label: 'Food Journey',
                   onPressed: () {
                     Navigator.pushAndRemoveUntil(
                         context,

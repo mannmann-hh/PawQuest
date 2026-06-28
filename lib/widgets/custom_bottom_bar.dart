@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:pawquest/services/forum_service.dart';
+import 'package:pawquest/screens/app_theme.dart';
 
 class CustomBottomBar extends StatelessWidget {
   final int currentIndex;
@@ -55,12 +56,12 @@ class CustomBottomBar extends StatelessWidget {
     final iconWidget = icon is IconData
         ? Icon(
             icon,
-            color: isSelected ? Colors.blueAccent : Colors.grey,
+            color: isSelected ? AppTheme.puddingOrange : AppTheme.puddingBrown.withValues(alpha: 0.4),
             size: 42,
           )
         : Image.asset(
             icon as String,
-            color: isSelected ? Colors.blueAccent : Colors.grey,
+            color: isSelected ? AppTheme.puddingOrange : AppTheme.puddingBrown.withValues(alpha: 0.4),
             width: 50,
             height: 50,
           );

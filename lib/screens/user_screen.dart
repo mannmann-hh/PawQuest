@@ -203,13 +203,13 @@ class _UserScreenState extends State<UserScreen> {
                                                 builder: (_) =>
                                                     const NotificationsScreen()),
                                           ),
-                                      const Color(0xFFEE9B8C)),
+                                      const Color(0xFFF8D66D)),
                                   const SizedBox(height: 12),
                                   _buildStyledButton(
                                       context,
                                       "Modify User Name",
                                       () => _changeDisplayName(context),
-                                      Colors.amber),
+                                      const Color(0xFFF8D66D)),
                                   const SizedBox(height: 12),
                                   _buildStyledButton(
                                       context, "Change cat character",
@@ -222,7 +222,7 @@ class _UserScreenState extends State<UserScreen> {
                                     if (selectedCat != null) {
                                       await _updateCatAvatar(selectedCat);
                                     }
-                                  }, Colors.amber),
+                                  }, const Color(0xFFF8D66D)),
                                   const SizedBox(height: 12),
                                   _buildStyledButton(
                                     context,
@@ -250,7 +250,7 @@ class _UserScreenState extends State<UserScreen> {
                                                 const LoginScreen()),
                                       );
                                     },
-                                    const Color(0xff6DB4D6),
+                                    const Color(0xFFEAD9BD),
                                   ),
                                   const SizedBox(height: 40),
                                 ],
