@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:file_picker/file_picker.dart';
 
 /// Unified "edit user info" screen: change display name and character (and,
 /// later, avatar) in one place.
@@ -32,13 +34,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   late TextEditingController _nameController;
   late String _selectedCat;
+  String? _avatarUrl;
   bool _saving = false;
+  bool _uploading = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.currentNickname);
     _selectedCat = widget.currentCat;
+    _avatarUrl = widget.currentAvatarUrl;
   }
 
   @override
@@ -48,7 +53,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   ImageProvider _avatarProvider() {
-    final url = widget.currentAvatarUrl;
+    final url = _avatarUrl;
     if (url != null && url.isNotEmpty) return NetworkImage(url);
     return AssetImage('assets/images/cats_profile/$_selectedCat.jpeg');
   }
@@ -70,7 +75,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
-          .update({'nickname': name, 'cat': _selectedCat});
+          .update({
+        'nickname': name,
+        'cat': _selectedCat,
+        'avatarUrl': _avatarUrl,
+      });
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
@@ -78,6 +87,90 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Could not save: $e')),
+      );
+    }
+  }
+
+  void _showAvatarOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: _brown.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded, color: _orange),
+              title: const Text('Choose from photos',
+                  style: TextStyle(color: _brown, fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                _pickAndUpload();
+              },
+            ),
+            if (_avatarUrl != null && _avatarUrl!.isNotEmpty)
+              ListTile(
+                leading: const Icon(Icons.restore_rounded, color: _brown),
+                title: const Text('Use my character instead',
+                    style:
+                        TextStyle(color: _brown, fontWeight: FontWeight.w600)),
+                onTap: () {
+                  Navigator.pop(sheetCtx);
+                  setState(() => _avatarUrl = null);
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickAndUpload() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+    final bytes = result.files.first.bytes;
+    if (bytes == null) return;
+
+    if (!mounted) return;
+    setState(() => _uploading = true);
+    try {
+      final ref =
+          FirebaseStorage.instance.ref('avatars/${user.uid}/avatar.jpg');
+      await ref.putData(
+        bytes,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+      final url = await ref.getDownloadURL();
+      if (!mounted) return;
+      setState(() {
+        _avatarUrl = url;
+        _uploading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _uploading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Upload failed: $e')),
       );
     }
   }
@@ -96,15 +189,55 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
         children: [
-          // avatar preview
+          // avatar preview with edit badge
           Center(
-            child: CircleAvatar(
-              radius: 54,
-              backgroundColor: _yellow.withValues(alpha: 0.4),
-              backgroundImage: _avatarProvider(),
+            child: GestureDetector(
+              onTap: _uploading ? null : _showAvatarOptions,
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 54,
+                    backgroundColor: _yellow.withValues(alpha: 0.4),
+                    backgroundImage: _avatarProvider(),
+                  ),
+                  if (_uploading)
+                    Positioned.fill(
+                      child: CircleAvatar(
+                        radius: 54,
+                        backgroundColor: Colors.black.withValues(alpha: 0.35),
+                        child: const CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2.5),
+                      ),
+                    ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: _orange,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: _cream, width: 2.5),
+                      ),
+                      child: const Icon(Icons.camera_alt_rounded,
+                          color: Colors.white, size: 16),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 10),
+          Center(
+            child: Text(
+              'Tap to change photo',
+              style: TextStyle(
+                fontSize: 12,
+                color: _brown.withValues(alpha: 0.55),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
 
           _label('Display name'),
           const SizedBox(height: 8),

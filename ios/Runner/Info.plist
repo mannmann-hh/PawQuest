@@ -43,7 +43,7 @@ Allow local network access for Flutter’s hot reload and debugging.
 	<key>NSCameraUsageDescription</key>
 	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string></string>
+	<string>PawQuest needs access to your photos so you can set a profile picture.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string></string>
 	<key>NSMotionUsageDescription</key>
