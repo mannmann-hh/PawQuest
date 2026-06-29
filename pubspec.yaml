@@ -51,6 +51,7 @@ flutter:
     - assets/images/cats/
     - assets/images/badges/
     - assets/images/icons/
+    - assets/images/real_food/
     - assets/images/default_profile.png
     - assets/config/cities.json
     - assets/config/food_details.json
