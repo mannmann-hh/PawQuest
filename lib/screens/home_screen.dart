@@ -10,6 +10,7 @@ import 'world_map_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pawquest/screens/step_history_screen.dart';
+import 'package:pawquest/services/watch_service.dart';
 class City {
   final String name;
   final int stepRequired;
@@ -145,6 +146,29 @@ class _HomeScreenState extends State<HomeScreen> {
               : ((steps - current.stepRequired) / span).clamp(0.0, 1.0);
           remaining = next.stepRequired - steps;
         }
+
+        final quest = context.read<DailyQuestProvider>().quest;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          WatchService.instance.sync({
+            'steps': steps,
+            'city': current.name,
+            'nextCity': next?.name ?? '',
+            'remaining': remaining,
+            'questTitle': quest?.questTitle ?? '',
+            'questDone': quest?.completed ?? false,
+            'questCurrent': quest?.currentSteps ?? 0,
+            'questGoal': quest?.goalSteps ?? 0,
+            'temp': weather != null
+                ? '${(weather.temperature as double).round()}°C'
+                : '—',
+            'weather': weather?.weatherMain ?? '',
+            'location': weather?.locationName ?? '',
+            'themeBg': WatchService.hex(p.background),
+            'themePrimary': WatchService.hex(p.primary),
+            'themeAccent': WatchService.hex(p.accent),
+            'themeText': WatchService.hex(p.text),
+          });
+        });
 
         return Scaffold(
           backgroundColor: p.background,
