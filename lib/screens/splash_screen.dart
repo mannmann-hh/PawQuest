@@ -80,8 +80,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   Widget _welcomeButton(String label, VoidCallback onTap) {
     return SizedBox(
-      width: 190,
-      height: 52,
+      width: 150,
+      height: 50,
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(

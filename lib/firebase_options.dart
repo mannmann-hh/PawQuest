@@ -7,6 +7,7 @@ class DefaultFirebaseOptions {
     appId: '1:318001829934:ios:dab683c1eacb22059e27bf',
     messagingSenderId: '318001829934',
     projectId: 'pawquest-e08af',
+    storageBucket: 'pawquest-e08af.firebasestorage.app',
     iosBundleId: 'com.qianyi.pawquest',
   );
 
