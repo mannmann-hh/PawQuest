@@ -61,6 +61,7 @@ class _UserScreenState extends State<UserScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -86,23 +87,30 @@ class _UserScreenState extends State<UserScreen> {
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF4A4A4A))),
               const SizedBox(height: 8),
-              ...AppPalette.all.map((pal) {
-                final selected = pal.id == theme.currentId;
-                return ListTile(
-                  onTap: () {
-                    sheetCtx.read<ThemeProvider>().setPalette(pal.id);
-                    Navigator.pop(sheetCtx);
-                  },
-                  leading: _swatch(pal),
-                  title: Text(pal.name,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF4A4A4A))),
-                  trailing: selected
-                      ? Icon(Icons.check_circle_rounded, color: pal.primary)
-                      : null,
-                );
-              }),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  children: AppPalette.all.map((pal) {
+                    final selected = pal.id == theme.currentId;
+                    return ListTile(
+                      onTap: () {
+                        sheetCtx.read<ThemeProvider>().setPalette(pal.id);
+                        Navigator.pop(sheetCtx);
+                      },
+                      leading: _swatch(pal),
+                      title: Text(pal.name,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF4A4A4A))),
+                      trailing: selected
+                          ? Icon(Icons.check_circle_rounded,
+                              color: pal.primary)
+                          : null,
+                    );
+                  }).toList(),
+                ),
+              ),
               const SizedBox(height: 12),
             ],
           ),

@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pawquest/providers/step_provider.dart';
 import 'package:pawquest/providers/daily_quest_provider.dart';
+import 'package:pawquest/providers/theme_provider.dart';
+import 'package:pawquest/theme/app_palette.dart';
 import 'world_map_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pawquest/screens/step_history_screen.dart';
-
 class City {
   final String name;
   final int stepRequired;
@@ -37,24 +38,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Brand palette
-  static const Color _cream = Color(0xFFFFF6EB);
-  static const Color _yellow = Color(0xFFF8D66D);
-  static const Color _orange = Color(0xFFF77F42);
-  static const Color _brown = Color(0xFF6C4A2F);
-
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadStepsAndUpdateProvider(context);
       if (!mounted) return;
-
       final sp = Provider.of<StepProvider>(context, listen: false);
       sp.startListening();
-
-      // Kick off the weather/location load once so the home chips can fill in.
       final dq = context.read<DailyQuestProvider>();
       if (dq.weather == null && !dq.isLoading) {
         dq.loadTodayQuest(sp.todaySteps);
@@ -113,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.watch<ThemeProvider>().palette;
     final steps = context.watch<StepProvider>().steps;
     final stepProvider = Provider.of<StepProvider>(context, listen: false);
     final weather = context.watch<DailyQuestProvider>().weather;
@@ -122,10 +114,9 @@ class _HomeScreenState extends State<HomeScreen> {
       future: loadCities(context),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Scaffold(
-            backgroundColor: _cream,
-            body: Center(
-                child: CircularProgressIndicator(color: _orange)),
+          return Scaffold(
+            backgroundColor: p.background,
+            body: Center(child: CircularProgressIndicator(color: p.primary)),
           );
         }
 
@@ -156,14 +147,12 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         return Scaffold(
-          backgroundColor: _cream,
+          backgroundColor: p.background,
           body: Stack(
             children: [
               Positioned.fill(
                 child: Image.asset(current.backgroundAsset, fit: BoxFit.cover),
               ),
-
-              // Cat illustration (kept) at the bottom
               if (user != null)
                 FutureBuilder<DocumentSnapshot>(
                   future: FirebaseFirestore.instance
@@ -189,8 +178,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
-
-              // Foreground content
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -198,11 +185,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 6),
-                      _topBar(context),
+                      _topBar(context, p),
                       const SizedBox(height: 12),
-                      _infoChips(weather),
+                      _infoChips(p, weather),
                       const SizedBox(height: 18),
                       _heroCard(
+                        p: p,
                         steps: steps,
                         progress: progress,
                         remaining: remaining,
@@ -213,7 +201,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-
               if (kDebugMode)
                 Positioned(
                   top: 48,
@@ -240,9 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ----------------------------------------------------------------- pieces
-
-  Widget _topBar(BuildContext context) {
+  Widget _topBar(BuildContext context, AppPalette p) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -252,27 +237,24 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text(
                 _greeting(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: _brown,
-                  shadows: [
-                    Shadow(color: Colors.white70, blurRadius: 6),
-                  ],
+                  color: p.text,
+                  shadows: const [Shadow(color: Colors.white70, blurRadius: 6)],
                 ),
               ),
               Text(
                 _dateLabel(),
                 style: TextStyle(
                   fontSize: 13,
-                  color: _brown.withValues(alpha: 0.75),
+                  color: p.text.withValues(alpha: 0.75),
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
         ),
-        // Map entry — compact, rounded button (replaces the big earth image)
         Material(
           color: Colors.white.withValues(alpha: 0.9),
           shape: const CircleBorder(),
@@ -298,20 +280,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _infoChips(dynamic weather) {
+  Widget _infoChips(AppPalette p, dynamic weather) {
     final location = weather?.locationName ?? 'Locating…';
     final temp =
         weather != null ? '${(weather.temperature as double).round()}°C' : '—';
     return Row(
       children: [
-        _chip(Icons.place_rounded, location),
+        _chip(p, Icons.place_rounded, location),
         const SizedBox(width: 10),
-        _chip(_weatherIcon(weather?.weatherMain), temp),
+        _chip(p, _weatherIcon(weather?.weatherMain), temp),
       ],
     );
   }
 
-  Widget _chip(IconData icon, String text) {
+  Widget _chip(AppPalette p, IconData icon, String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
@@ -324,14 +306,14 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: _orange),
+          Icon(icon, size: 16, color: p.primary),
           const SizedBox(width: 6),
           Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: _brown,
+              color: p.text,
             ),
           ),
         ],
@@ -340,6 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _heroCard({
+    required AppPalette p,
     required int steps,
     required double progress,
     required int remaining,
@@ -361,14 +344,14 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.explore_rounded, size: 16, color: _orange),
+              Icon(Icons.explore_rounded, size: 16, color: p.primary),
               const SizedBox(width: 5),
               Text(
                 'Now exploring ${current.name}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: _brown,
+                  color: p.text,
                 ),
               ),
             ],
@@ -387,8 +370,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     value: progress,
                     strokeWidth: 14,
                     strokeCap: StrokeCap.round,
-                    backgroundColor: _cream,
-                    valueColor: const AlwaysStoppedAnimation(_orange),
+                    backgroundColor: p.background,
+                    valueColor: AlwaysStoppedAnimation(p.primary),
                   ),
                 ),
                 Column(
@@ -396,17 +379,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       '$steps',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 44,
                         fontWeight: FontWeight.bold,
-                        color: _brown,
+                        color: p.text,
                       ),
                     ),
                     Text(
                       'total steps',
                       style: TextStyle(
                         fontSize: 13,
-                        color: _brown.withValues(alpha: 0.7),
+                        color: p.text.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -415,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _nextUnlock(next, remaining),
+          _nextUnlock(p, next, remaining),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -425,8 +408,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 MaterialPageRoute(builder: (_) => const StepHistoryScreen()),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _yellow,
-                foregroundColor: _brown,
+                backgroundColor: p.accent,
+                foregroundColor: p.text,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(
@@ -444,25 +427,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _nextUnlock(City? next, int remaining) {
+  Widget _nextUnlock(AppPalette p, City? next, int remaining) {
     if (next == null) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: _yellow.withValues(alpha: 0.35),
+          color: p.accent.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.celebration_rounded, size: 16, color: _orange),
-            SizedBox(width: 6),
+            Icon(Icons.celebration_rounded, size: 16, color: p.primary),
+            const SizedBox(width: 6),
             Text(
               'All cities unlocked!',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: _brown,
+                color: p.text,
               ),
             ),
           ],
@@ -472,20 +455,20 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: _cream,
+        color: p.background,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.lock_outline_rounded, size: 16, color: _orange),
+          Icon(Icons.lock_outline_rounded, size: 16, color: p.primary),
           const SizedBox(width: 6),
           Text(
             '$remaining steps to unlock ${next.name}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: _brown,
+              color: p.text,
             ),
           ),
         ],
