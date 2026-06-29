@@ -3,14 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
+import 'package:pawquest/providers/theme_provider.dart';
+import 'package:pawquest/theme/app_palette.dart';
 
 class StepHistoryScreen extends StatelessWidget {
   const StepHistoryScreen({super.key});
-
-  static const Color _cream = Color(0xFFFFF6EB);
-  static const Color _yellow = Color(0xFFF8D66D);
-  static const Color _orange = Color(0xFFF77F42);
-  static const Color _brown = Color(0xFF6B4F3A);
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +20,8 @@ class StepHistoryScreen extends StatelessWidget {
       );
     }
 
+    final p = context.watch<ThemeProvider>().palette;
+
     final historyRef = FirebaseFirestore.instance
         .collection('users')
         .doc(uid)
@@ -29,13 +29,13 @@ class StepHistoryScreen extends StatelessWidget {
         .orderBy('timestamp', descending: true);
 
     return Scaffold(
-      backgroundColor: _cream,
+      backgroundColor: p.background,
       appBar: AppBar(
         title: const Text(
           'Step History',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: _yellow,
+        backgroundColor: p.accent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -43,16 +43,14 @@ class StepHistoryScreen extends StatelessWidget {
         stream: historyRef.snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(color: p.primary));
           }
 
-          // Oldest -> newest
           final docs = snapshot.data!.docs.reversed.toList();
           if (docs.isEmpty) {
-            return _emptyState();
+            return _emptyState(p);
           }
 
-          // ---- summary stats over all history ----
           int total = 0;
           int best = 0;
           String bestDate = '';
@@ -74,22 +72,22 @@ class StepHistoryScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             children: [
               _summaryGrid(
+                p: p,
                 total: total,
                 avg: avg,
                 best: best,
                 bestDate: bestDate,
                 days: activeDays,
-                onActiveDaysTap: () => _openCalendar(context, dateSteps),
+                onActiveDaysTap: () => _openCalendar(context, p, dateSteps),
               ),
               const SizedBox(height: 20),
-              _sectionTitle('Last 7 days'),
+              _sectionTitle(p, 'Last 7 days'),
               const SizedBox(height: 12),
-              _chartCard(docs),
+              _chartCard(p, docs),
               const SizedBox(height: 24),
-              _sectionTitle('Daily details'),
+              _sectionTitle(p, 'Daily details'),
               const SizedBox(height: 12),
-              // newest first in the list
-              ...docs.reversed.map(_buildStepCard),
+              ...docs.reversed.map((d) => _buildStepCard(p, d)),
             ],
           );
         },
@@ -124,7 +122,6 @@ class StepHistoryScreen extends StatelessWidget {
     return v.toInt().toString();
   }
 
-  /// A "nice" tick step (1/2/2.5/5 × 10^n) for ~5 ticks.
   double _niceStep(double maxVal, {int ticks = 5}) {
     if (maxVal <= 0) return 1000;
     final rough = maxVal / ticks;
@@ -147,31 +144,31 @@ class StepHistoryScreen extends StatelessWidget {
 
   // ----------------------------------------------------------------- widgets
 
-  Widget _sectionTitle(String text) => Text(
+  Widget _sectionTitle(AppPalette p, String text) => Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: _brown,
+          color: p.text,
         ),
       );
 
-  Widget _emptyState() {
+  Widget _emptyState(AppPalette p) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.directions_walk_rounded,
-              size: 56, color: _orange.withValues(alpha: 0.6)),
+              size: 56, color: p.primary.withValues(alpha: 0.6)),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'No steps recorded yet',
-            style: TextStyle(fontSize: 16, color: _brown),
+            style: TextStyle(fontSize: 16, color: p.text),
           ),
           const SizedBox(height: 4),
           Text(
             'Start walking and your history will appear here.',
-            style: TextStyle(fontSize: 13, color: _brown.withValues(alpha: 0.6)),
+            style: TextStyle(fontSize: 13, color: p.text.withValues(alpha: 0.6)),
           ),
         ],
       ),
@@ -179,6 +176,7 @@ class StepHistoryScreen extends StatelessWidget {
   }
 
   Widget _summaryGrid({
+    required AppPalette p,
     required int total,
     required int avg,
     required int best,
@@ -191,13 +189,13 @@ class StepHistoryScreen extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _statCard(Icons.functions_rounded, 'Total steps',
-                  _comma(total), _orange),
+              child: _statCard(
+                  p, Icons.functions_rounded, 'Total steps', _comma(total)),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _statCard(Icons.trending_up_rounded, 'Daily average',
-                  _comma(avg), _orange),
+              child: _statCard(p, Icons.trending_up_rounded, 'Daily average',
+                  _comma(avg)),
             ),
           ],
         ),
@@ -206,20 +204,20 @@ class StepHistoryScreen extends StatelessWidget {
           children: [
             Expanded(
               child: _statCard(
+                p,
                 Icons.emoji_events_rounded,
                 'Best day',
                 _comma(best),
-                _orange,
                 sub: bestDate.isNotEmpty ? bestDate : null,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _statCard(
+                p,
                 Icons.calendar_month_rounded,
                 'Active days',
                 '$days',
-                _orange,
                 onTap: onActiveDaysTap,
               ),
             ),
@@ -230,17 +228,17 @@ class StepHistoryScreen extends StatelessWidget {
   }
 
   Widget _statCard(
+    AppPalette p,
     IconData icon,
     String label,
-    String value,
-    Color accent, {
+    String value, {
     String? sub,
     VoidCallback? onTap,
   }) {
     final card = Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: p.surface,
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
           BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
@@ -251,14 +249,14 @@ class StepHistoryScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: accent),
+              Icon(icon, size: 18, color: p.primary),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: _brown.withValues(alpha: 0.7),
+                    color: p.text.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -266,16 +264,16 @@ class StepHistoryScreen extends StatelessWidget {
               ),
               if (onTap != null)
                 Icon(Icons.chevron_right_rounded,
-                    size: 18, color: _brown.withValues(alpha: 0.4)),
+                    size: 18, color: p.text.withValues(alpha: 0.4)),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: _brown,
+              color: p.text,
             ),
           ),
           if (sub != null) ...[
@@ -284,7 +282,7 @@ class StepHistoryScreen extends StatelessWidget {
               sub,
               style: TextStyle(
                 fontSize: 12,
-                color: _brown.withValues(alpha: 0.6),
+                color: p.text.withValues(alpha: 0.6),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -304,17 +302,17 @@ class StepHistoryScreen extends StatelessWidget {
     );
   }
 
-  void _openCalendar(BuildContext context, Map<String, int> dateSteps) {
+  void _openCalendar(
+      BuildContext context, AppPalette p, Map<String, int> dateSteps) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _ActiveDaysCalendar(dateSteps: dateSteps),
+      builder: (_) => _ActiveDaysCalendar(dateSteps: dateSteps, palette: p),
     );
   }
 
-  Widget _chartCard(List<QueryDocumentSnapshot> docs) {
-    // last 7 days, oldest -> newest
+  Widget _chartCard(AppPalette p, List<QueryDocumentSnapshot> docs) {
     final last7 = docs.length <= 7 ? docs : docs.sublist(docs.length - 7);
 
     double maxVal = 0;
@@ -323,7 +321,7 @@ class StepHistoryScreen extends StatelessWidget {
     }
     final interval = _niceStep(maxVal);
     double maxY = (maxVal / interval).ceil() * interval;
-    if (maxY <= maxVal) maxY += interval; // headroom so the top bar isn't clipped
+    if (maxY <= maxVal) maxY += interval;
     if (maxY <= 0) maxY = interval;
 
     final barGroups = <BarChartGroupData>[];
@@ -338,12 +336,12 @@ class StepHistoryScreen extends StatelessWidget {
             BarChartRodData(
               toY: daily,
               width: 22,
-              color: isLatest ? _orange : _yellow,
+              color: isLatest ? p.primary : p.accent,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
                 toY: maxY,
-                color: _yellow.withValues(alpha: 0.12),
+                color: p.accent.withValues(alpha: 0.12),
               ),
             ),
           ],
@@ -356,7 +354,7 @@ class StepHistoryScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 18, 14, 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: p.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
@@ -374,8 +372,8 @@ class StepHistoryScreen extends StatelessWidget {
               show: true,
               drawVerticalLine: false,
               horizontalInterval: interval,
-              getDrawingHorizontalLine: (value) => const FlLine(
-                color: Color(0xFFEEE2C8),
+              getDrawingHorizontalLine: (value) => FlLine(
+                color: p.textMuted.withValues(alpha: 0.22),
                 strokeWidth: 1,
               ),
             ),
@@ -398,7 +396,7 @@ class StepHistoryScreen extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 6),
                       child: Text(
                         dateLabels[index],
-                        style: const TextStyle(fontSize: 10, color: _brown),
+                        style: TextStyle(fontSize: 10, color: p.text),
                       ),
                     );
                   },
@@ -413,7 +411,7 @@ class StepHistoryScreen extends StatelessWidget {
                     if (value == 0) return const SizedBox();
                     return Text(
                       _axisLabel(value),
-                      style: const TextStyle(fontSize: 10, color: _brown),
+                      style: TextStyle(fontSize: 10, color: p.text),
                     );
                   },
                 ),
@@ -425,7 +423,7 @@ class StepHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStepCard(QueryDocumentSnapshot doc) {
+  Widget _buildStepCard(AppPalette p, QueryDocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     final daily = _daily(doc);
 
@@ -433,7 +431,7 @@ class StepHistoryScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: p.surface,
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
           BoxShadow(color: Colors.black12, blurRadius: 5, offset: Offset(0, 2)),
@@ -445,28 +443,28 @@ class StepHistoryScreen extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: _yellow.withValues(alpha: 0.25),
+              color: p.accent.withValues(alpha: 0.25),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.directions_walk_rounded,
-                size: 20, color: _orange),
+            child: Icon(Icons.directions_walk_rounded,
+                size: 20, color: p.primary),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Text(
               data['date'] ?? '',
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: _brown,
+                color: p.text,
                 fontSize: 15,
               ),
             ),
           ),
           Text(
             '${_comma(daily)} steps',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
-              color: _brown,
+              color: p.text,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -479,32 +477,27 @@ class StepHistoryScreen extends StatelessWidget {
 /// Bottom-sheet month calendar that highlights days with step records.
 class _ActiveDaysCalendar extends StatefulWidget {
   final Map<String, int> dateSteps; // key "YYYY-MM-DD" -> steps
+  final AppPalette palette;
 
-  const _ActiveDaysCalendar({required this.dateSteps});
+  const _ActiveDaysCalendar({required this.dateSteps, required this.palette});
 
   @override
   State<_ActiveDaysCalendar> createState() => _ActiveDaysCalendarState();
 }
 
 class _ActiveDaysCalendarState extends State<_ActiveDaysCalendar> {
-  static const Color _cream = Color(0xFFFFF6EB);
-  static const Color _yellow = Color(0xFFF8D66D);
-  static const Color _orange = Color(0xFFF77F42);
-  static const Color _brown = Color(0xFF6B4F3A);
-
   static const _months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
   static const _weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
-  late DateTime _month; // first day of the visible month
+  late DateTime _month;
   String? _selected;
 
   @override
   void initState() {
     super.initState();
-    // Start on the month of the most recent active day, else this month.
     final keys = widget.dateSteps.keys.toList()..sort();
     final base = keys.isNotEmpty ? DateTime.tryParse(keys.last) : null;
     final now = base ?? DateTime.now();
@@ -523,6 +516,7 @@ class _ActiveDaysCalendarState extends State<_ActiveDaysCalendar> {
 
   @override
   Widget build(BuildContext context) {
+    final p = widget.palette;
     final daysInMonth = DateTime(_month.year, _month.month + 1, 0).day;
     final leadingBlanks = DateTime(_month.year, _month.month, 1).weekday - 1;
     final today = DateTime.now();
@@ -546,9 +540,9 @@ class _ActiveDaysCalendarState extends State<_ActiveDaysCalendar> {
     }
 
     return Container(
-      decoration: const BoxDecoration(
-        color: _cream,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: p.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       child: SafeArea(
@@ -560,50 +554,49 @@ class _ActiveDaysCalendarState extends State<_ActiveDaysCalendar> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: _brown.withValues(alpha: 0.2),
+                color: p.text.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             const SizedBox(height: 14),
             Row(
               children: [
-                const Icon(Icons.local_fire_department_rounded,
-                    size: 20, color: _orange),
+                Icon(Icons.local_fire_department_rounded,
+                    size: 20, color: p.primary),
                 const SizedBox(width: 6),
-                const Text(
+                Text(
                   'Active days',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: _brown,
+                    color: p.text,
                   ),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, color: _brown),
+                  icon: Icon(Icons.close_rounded, color: p.text),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
             const SizedBox(height: 4),
-            // month navigation
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.chevron_left_rounded, color: _brown),
+                  icon: Icon(Icons.chevron_left_rounded, color: p.text),
                   onPressed: () => _shiftMonth(-1),
                 ),
                 Text(
                   '${_months[_month.month - 1]} ${_month.year}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: _brown,
+                    color: p.text,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.chevron_right_rounded, color: _brown),
+                  icon: Icon(Icons.chevron_right_rounded, color: p.text),
                   onPressed: () => _shiftMonth(1),
                 ),
               ],
@@ -618,7 +611,7 @@ class _ActiveDaysCalendarState extends State<_ActiveDaysCalendar> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: _brown.withValues(alpha: 0.55),
+                              color: p.text.withValues(alpha: 0.55),
                             ),
                           ),
                         ),
@@ -644,8 +637,9 @@ class _ActiveDaysCalendarState extends State<_ActiveDaysCalendar> {
 
   Widget _dayCell(
       int day, String key, bool isActive, bool isToday, bool isSelected) {
-    final bg = isActive ? _orange : Colors.transparent;
-    final textColor = isActive ? Colors.white : _brown;
+    final p = widget.palette;
+    final bg = isActive ? p.primary : Colors.transparent;
+    final textColor = isActive ? Colors.white : p.text;
 
     return GestureDetector(
       onTap: isActive ? () => setState(() => _selected = key) : null,
@@ -655,9 +649,9 @@ class _ActiveDaysCalendarState extends State<_ActiveDaysCalendar> {
           color: bg,
           shape: BoxShape.circle,
           border: isSelected
-              ? Border.all(color: _brown, width: 2)
+              ? Border.all(color: p.text, width: 2)
               : (isToday && !isActive
-                  ? Border.all(color: _orange, width: 1.5)
+                  ? Border.all(color: p.primary, width: 1.5)
                   : null),
         ),
         child: Text(
@@ -673,6 +667,7 @@ class _ActiveDaysCalendarState extends State<_ActiveDaysCalendar> {
   }
 
   Widget _footer(int activeThisMonth) {
+    final p = widget.palette;
     if (_selected != null) {
       final steps = widget.dateSteps[_selected] ?? 0;
       final s = steps.toString().replaceAllMapped(
@@ -681,24 +676,23 @@ class _ActiveDaysCalendarState extends State<_ActiveDaysCalendar> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: p.surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
-            const Icon(Icons.directions_walk_rounded,
-                size: 18, color: _orange),
+            Icon(Icons.directions_walk_rounded, size: 18, color: p.primary),
             const SizedBox(width: 8),
             Text(
               _selected!,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, color: _brown, fontSize: 14),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: p.text, fontSize: 14),
             ),
             const Spacer(),
             Text(
               '$s steps',
-              style: const TextStyle(
-                  fontWeight: FontWeight.w700, color: _brown, fontSize: 14),
+              style: TextStyle(
+                  fontWeight: FontWeight.w700, color: p.text, fontSize: 14),
             ),
           ],
         ),
@@ -708,7 +702,7 @@ class _ActiveDaysCalendarState extends State<_ActiveDaysCalendar> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: _yellow.withValues(alpha: 0.3),
+        color: p.accent.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -716,16 +710,14 @@ class _ActiveDaysCalendarState extends State<_ActiveDaysCalendar> {
           Container(
             width: 14,
             height: 14,
-            decoration: const BoxDecoration(
-                color: _orange, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+                color: p.primary, shape: BoxShape.circle),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Text(
-            activeThisMonth == 0
-                ? 'No active days this month'
-                : '$activeThisMonth active ${activeThisMonth == 1 ? 'day' : 'days'} this month · tap one',
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600, color: _brown),
+            '$activeThisMonth active ${activeThisMonth == 1 ? 'day' : 'days'} this month',
+            style: TextStyle(
+                fontWeight: FontWeight.w600, color: p.text, fontSize: 14),
           ),
         ],
       ),
