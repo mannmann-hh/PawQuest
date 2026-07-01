@@ -5,6 +5,30 @@ import 'package:pawquest/services/auth_service.dart';
 import 'package:pawquest/theme/app_palette.dart';
 
 void main() {
+  testWidgets('uses image-left and form-right layout on landscape tablet',
+      (tester) async {
+    tester.view.physicalSize = const Size(1194, 834);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LoginScreen(
+          authService: _FakeAuthService(),
+          palette: AppPalette.all.first,
+          onLoginSuccess: () {},
+        ),
+      ),
+    );
+
+    final imageRect = tester.getRect(find.byType(Image).first);
+    final emailRect = tester.getRect(find.byType(TextField).first);
+
+    expect(find.text('Welcome back'), findsOneWidget);
+    expect(imageRect.center.dx, lessThan(emailRect.center.dx));
+  });
+
   testWidgets('login trims credentials and reports success', (tester) async {
     final auth = _FakeAuthService();
     var success = false;

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../providers/theme_provider.dart';
+import '../community_screen.dart';
+import '../user_screen.dart';
+import '../weather_screen.dart';
+import '../world_map_screen.dart';
 import 'tablet_badge_page.dart';
-import 'tablet_community_page.dart';
 import 'tablet_overview_page.dart';
-import 'tablet_profile_page.dart';
-import 'tablet_weather_page.dart';
 
 class TabletDashboardScreen extends StatefulWidget {
   final int initialIndex;
@@ -21,12 +24,13 @@ class TabletDashboardScreen extends StatefulWidget {
 class _TabletDashboardScreenState extends State<TabletDashboardScreen> {
   late int _selectedIndex;
 
-  final List<Widget> _pages = const [
-    TabletOverviewPage(),
-    TabletBadgePage(),
-    TabletWeatherPage(),
-    TabletCommunityPage(),
-    TabletProfilePage(),
+  final List<Widget> _pages = [
+    const TabletOverviewPage(),
+    const TabletBadgePage(),
+    const WeatherScreen(),
+    CommunityScreen(),
+    const UserScreen(showBottomNavigation: false),
+    const WorldMapScreen(),
   ];
 
   @override
@@ -37,8 +41,9 @@ class _TabletDashboardScreenState extends State<TabletDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.watch<ThemeProvider>().palette;
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF6EB),
+      backgroundColor: palette.background,
       body: SafeArea(
         child: Row(
           children: [
@@ -46,21 +51,21 @@ class _TabletDashboardScreenState extends State<TabletDashboardScreen> {
               selectedIndex: _selectedIndex,
               minWidth: 86,
               groupAlignment: -0.8,
-              backgroundColor: const Color(0xFFFFE8BC),
-              selectedIconTheme: const IconThemeData(
-                color: Color(0xFFF77F42),
+              backgroundColor: palette.surface,
+              selectedIconTheme: IconThemeData(
+                color: palette.primary,
                 size: 30,
               ),
-              unselectedIconTheme: const IconThemeData(
-                color: Color(0xFF8A715B),
+              unselectedIconTheme: IconThemeData(
+                color: palette.textMuted,
                 size: 26,
               ),
-              selectedLabelTextStyle: const TextStyle(
-                color: Color(0xFF6C4A2F),
+              selectedLabelTextStyle: TextStyle(
+                color: palette.text,
                 fontWeight: FontWeight.w800,
               ),
-              unselectedLabelTextStyle: const TextStyle(
-                color: Color(0xFF8A715B),
+              unselectedLabelTextStyle: TextStyle(
+                color: palette.textMuted,
               ),
               labelType: NavigationRailLabelType.all,
               onDestinationSelected: (index) {
@@ -91,6 +96,11 @@ class _TabletDashboardScreenState extends State<TabletDashboardScreen> {
                   icon: Icon(Icons.person_outline),
                   selectedIcon: Icon(Icons.person),
                   label: Text('Profile'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.map_outlined),
+                  selectedIcon: Icon(Icons.map),
+                  label: Text('Map'),
                 ),
               ],
             ),

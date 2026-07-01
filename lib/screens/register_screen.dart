@@ -76,6 +76,69 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     p = context.watch<ThemeProvider>().palette;
+    final size = MediaQuery.sizeOf(context);
+    final useLandscapeTabletLayout =
+        size.shortestSide >= 600 && size.width > size.height;
+
+    if (useLandscapeTabletLayout) {
+      return Scaffold(
+        backgroundColor: p.background,
+        body: SafeArea(
+          child: Row(
+            children: [
+              Expanded(
+                flex: 11,
+                child: SizedBox.expand(
+                  child: Image.asset(
+                    'assets/images/login.jpeg',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 9,
+                child: Container(
+                  color: p.background,
+                  padding: const EdgeInsets.symmetric(horizontal: 48),
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 480),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Create your account',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium
+                                  ?.copyWith(
+                                    color: p.text,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Start your PawQuest journey.',
+                              style: TextStyle(color: p.textMuted),
+                            ),
+                            const SizedBox(height: 32),
+                            _registerForm(context),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: p.background,
       body: Stack(
@@ -91,50 +154,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
               alignment: Alignment.bottomCenter,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(28, 0, 28, 56),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _field(
-                      controller: _emailController,
-                      hint: 'E-mail',
-                      icon: Icons.email_rounded,
-                      keyboard: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 14),
-                    _field(
-                      controller: _passwordController,
-                      hint: 'Password',
-                      icon: Icons.lock_rounded,
-                      obscure: _obscure,
-                      suffix: IconButton(
-                        icon: Icon(
-                          _obscure
-                              ? Icons.visibility_off_rounded
-                              : Icons.visibility_rounded,
-                          color: p.text.withValues(alpha: 0.5),
-                          size: 20,
-                        ),
-                        onPressed: () => setState(() => _obscure = !_obscure),
-                      ),
-                    ),
-                    const SizedBox(height: 22),
-                    _primaryButton('Register', _register),
-                    const SizedBox(height: 6),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        'Already have an account? Login',
-                        style: TextStyle(
-                            color: p.text, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                ),
+                child: _registerForm(context),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _registerForm(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _field(
+          controller: _emailController,
+          hint: 'E-mail',
+          icon: Icons.email_rounded,
+          keyboard: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: 14),
+        _field(
+          controller: _passwordController,
+          hint: 'Password',
+          icon: Icons.lock_rounded,
+          obscure: _obscure,
+          suffix: IconButton(
+            icon: Icon(
+              _obscure
+                  ? Icons.visibility_off_rounded
+                  : Icons.visibility_rounded,
+              color: p.text.withValues(alpha: 0.5),
+              size: 20,
+            ),
+            onPressed: () => setState(() => _obscure = !_obscure),
+          ),
+        ),
+        const SizedBox(height: 22),
+        _primaryButton('Register', _register),
+        const SizedBox(height: 6),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Already have an account? Login',
+            style: TextStyle(color: p.text, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
     );
   }
 
@@ -178,10 +244,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           backgroundColor: p.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18)),
-          textStyle:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         child: _isLoading
             ? const SizedBox(

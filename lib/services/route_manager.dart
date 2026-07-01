@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 typedef CityUnlockedCallback = void Function(String cityName, String? badgeUrl);
 
@@ -16,7 +17,8 @@ class RouteManager {
   }
 
   /// 加载当前用户已解锁的所有城市（根据步数）
-  Future<List<Map<String, dynamic>>> loadUnlockedCities(int currentSteps) async {
+  Future<List<Map<String, dynamic>>> loadUnlockedCities(
+      int currentSteps) async {
     final snapshot = await FirebaseFirestore.instance
         .collection('cities')
         .orderBy('order')
@@ -32,7 +34,7 @@ class RouteManager {
           'stepRequired': data['stepRequired'],
           'badge': data['badge'],
           'order': data['order'],
-          'x': data['x'],   // Firestore 中设定的 number 类型
+          'x': data['x'], // Firestore 中设定的 number 类型
           'y': data['y'],
         });
       }
@@ -43,14 +45,15 @@ class RouteManager {
 
   /// 检查是否达到了新的城市步数要求，触发解锁逻辑（只触发一个）
   Future<void> checkAndUnlockCities(int currentSteps) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
     final snapshot = await FirebaseFirestore.instance
         .collection('cities')
         .orderBy('order')
         .get();
 
-    final userRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseFirestore.instance.app.options.projectId); // ⚠️此处替换为真实 uid
+    final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
 
     final userDoc = await userRef.get();
     final int unlockedOrder = userDoc.data()?['currentCityOrder'] ?? -1;
@@ -62,7 +65,10 @@ class RouteManager {
 
       if (cityOrder == unlockedOrder + 1 && currentSteps >= stepRequired) {
         // 解锁新城市
-        await userRef.update({'currentCityOrder': cityOrder});
+        await userRef.set(
+          {'currentCityOrder': cityOrder},
+          SetOptions(merge: true),
+        );
         if (_onCityUnlocked != null) {
           _onCityUnlocked!(data['name'], data['badge']);
         }
@@ -71,4 +77,3 @@ class RouteManager {
     }
   }
 }
-

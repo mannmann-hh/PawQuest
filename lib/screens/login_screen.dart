@@ -4,6 +4,7 @@ import 'responsive_main_screen.dart';
 import 'register_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:pawquest/providers/theme_provider.dart';
+import 'package:pawquest/providers/step_provider.dart';
 import 'package:pawquest/theme/app_palette.dart';
 import '../services/auth_service.dart';
 
@@ -57,6 +58,10 @@ class _LoginScreenState extends State<LoginScreen> {
         widget.onLoginSuccess!();
         return;
       }
+      final stepProvider = context.read<StepProvider>();
+      await stepProvider.loadSavedSteps();
+      stepProvider.startListening();
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const ResponsiveMainScreen()),
@@ -79,6 +84,69 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     p = widget.palette ?? context.watch<ThemeProvider>().palette;
+    final size = MediaQuery.sizeOf(context);
+    final useLandscapeTabletLayout =
+        size.shortestSide >= 600 && size.width > size.height;
+
+    if (useLandscapeTabletLayout) {
+      return Scaffold(
+        backgroundColor: p.background,
+        body: SafeArea(
+          child: Row(
+            children: [
+              Expanded(
+                flex: 11,
+                child: SizedBox.expand(
+                  child: Image.asset(
+                    'assets/images/login.jpeg',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 9,
+                child: Container(
+                  color: p.background,
+                  padding: const EdgeInsets.symmetric(horizontal: 48),
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 480),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Welcome back',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium
+                                  ?.copyWith(
+                                    color: p.text,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Continue your PawQuest journey.',
+                              style: TextStyle(color: p.textMuted),
+                            ),
+                            const SizedBox(height: 32),
+                            _loginForm(context),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: p.background,
       body: Stack(
@@ -94,54 +162,56 @@ class _LoginScreenState extends State<LoginScreen> {
               alignment: Alignment.bottomCenter,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(28, 0, 28, 56),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _field(
-                      controller: _emailController,
-                      hint: 'Email',
-                      icon: Icons.email_rounded,
-                      keyboard: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 14),
-                    _field(
-                      controller: _passwordController,
-                      hint: 'Password',
-                      icon: Icons.lock_rounded,
-                      obscure: _obscure,
-                      suffix: IconButton(
-                        icon: Icon(
-                          _obscure
-                              ? Icons.visibility_off_rounded
-                              : Icons.visibility_rounded,
-                          color: p.text.withValues(alpha: 0.5),
-                          size: 20,
-                        ),
-                        onPressed: () => setState(() => _obscure = !_obscure),
-                      ),
-                    ),
-                    const SizedBox(height: 22),
-                    _primaryButton('Login', _login),
-                    const SizedBox(height: 6),
-                    TextButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const RegisterScreen()),
-                      ),
-                      child: Text(
-                        'Don’t have an account? Register',
-                        style: TextStyle(
-                            color: p.text, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                ),
+                child: _loginForm(context),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _loginForm(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _field(
+          controller: _emailController,
+          hint: 'Email',
+          icon: Icons.email_rounded,
+          keyboard: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: 14),
+        _field(
+          controller: _passwordController,
+          hint: 'Password',
+          icon: Icons.lock_rounded,
+          obscure: _obscure,
+          suffix: IconButton(
+            icon: Icon(
+              _obscure
+                  ? Icons.visibility_off_rounded
+                  : Icons.visibility_rounded,
+              color: p.text.withValues(alpha: 0.5),
+              size: 20,
+            ),
+            onPressed: () => setState(() => _obscure = !_obscure),
+          ),
+        ),
+        const SizedBox(height: 22),
+        _primaryButton('Login', _login),
+        const SizedBox(height: 6),
+        TextButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const RegisterScreen()),
+          ),
+          child: Text(
+            'Don’t have an account? Register',
+            style: TextStyle(color: p.text, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
     );
   }
 

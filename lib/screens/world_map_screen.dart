@@ -79,179 +79,199 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
   @override
   Widget build(BuildContext context) {
     final p = context.watch<ThemeProvider>().palette;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          /// 背景地图
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/Italymap.png',
-              fit: BoxFit.cover,
-            ),
-          ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final mapWidth = constraints.maxWidth;
+          final mapHeight = constraints.maxHeight;
+          const sourceSize = Size(1024, 1536);
+          final fitted = applyBoxFit(
+            BoxFit.cover,
+            sourceSize,
+            Size(mapWidth, mapHeight),
+          );
+          final renderedSize = fitted.destination;
+          final imageOffset = Offset(
+            (mapWidth - renderedSize.width) / 2,
+            (mapHeight - renderedSize.height) / 2,
+          );
+          return Stack(
+            children: [
+              /// 背景地图
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/images/Italymap.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
 
-          /// 城市徽章标记
-          ...unlockedCities.map((city) {
-            debugPrint('$city');
-            double x = city['x'] / 1000 * screenWidth;
-            double y = city['y'] / 1000 * screenHeight;
+              /// 城市徽章标记
+              ...unlockedCities.map((city) {
+                final x =
+                    imageOffset.dx + city['x'] / 1000 * renderedSize.width;
+                final y =
+                    imageOffset.dy + city['y'] / 1000 * renderedSize.height;
 
-            return Positioned(
-              left: x,
-              top: y,
-              child: GestureDetector(
-                onTap: () {
-                  showGeneralDialog(
-                    context: context,
-                    barrierDismissible: true,
-                    barrierLabel: '',
-                    barrierColor: Colors.black.withValues(alpha: 0.2), // 半透明背景
-                    pageBuilder: (_, __, ___) => const SizedBox(),
-                    transitionBuilder: (_, anim, __, child) {
-                      return Transform.scale(
-                        scale: anim.value,
-                        child: Opacity(
-                          opacity: anim.value,
-                          child: Center(
-                            child: Container(
-                              width: 320,
-                              padding:
-                                  const EdgeInsets.fromLTRB(28, 26, 28, 24),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(32),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 24,
-                                    offset: Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.celebration_rounded,
-                                          size: 18, color: p.primary),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        "NEW CITY UNLOCKED",
-                                        style: GoogleFonts.baloo2(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w700,
-                                          color: p.primary,
-                                          letterSpacing: 1.2,
-                                        ),
+                return Positioned(
+                  left: x,
+                  top: y,
+                  child: GestureDetector(
+                    onTap: () {
+                      showGeneralDialog(
+                        context: context,
+                        barrierDismissible: true,
+                        barrierLabel: '',
+                        barrierColor:
+                            Colors.black.withValues(alpha: 0.2), // 半透明背景
+                        pageBuilder: (_, __, ___) => const SizedBox(),
+                        transitionBuilder: (_, anim, __, child) {
+                          return Transform.scale(
+                            scale: anim.value,
+                            child: Opacity(
+                              opacity: anim.value,
+                              child: Center(
+                                child: Container(
+                                  width: 320,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(28, 26, 28, 24),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(32),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 24,
+                                        offset: Offset(0, 10),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    city['name'],
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.baloo2(
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold,
-                                      color: p.text,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 18),
-
-                                  // 🔥 勋章图案
-                                  Container(
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: p.accent.withValues(alpha: 0.25),
-                                    ),
-                                    child: Image.asset(
-                                      'assets/images/badges/${city['badge']}',
-                                      width: 170,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 22),
-
-                                  roundedButton(
-                  p: p,
-                                    label: 'View details',
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => CityDetailScreen(
-                                            cityName: city['name'],
-                                            badgeImagePath:
-                                                'assets/images/badges/${city['badge']}',
-                                            stepRequired: city['stepRequired'],
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.celebration_rounded,
+                                              size: 18, color: p.primary),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            "NEW CITY UNLOCKED",
+                                            style: GoogleFonts.baloo2(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: p.primary,
+                                              letterSpacing: 1.2,
+                                            ),
                                           ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        city['name'],
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.baloo2(
+                                          fontSize: 30,
+                                          fontWeight: FontWeight.bold,
+                                          color: p.text,
                                         ),
-                                      );
-                                    },
+                                      ),
+                                      const SizedBox(height: 18),
+
+                                      // 🔥 勋章图案
+                                      Container(
+                                        padding: const EdgeInsets.all(14),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color:
+                                              p.accent.withValues(alpha: 0.25),
+                                        ),
+                                        child: Image.asset(
+                                          'assets/images/badges/${city['badge']}',
+                                          width: 170,
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 22),
+
+                                      roundedButton(
+                                        p: p,
+                                        label: 'View details',
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => CityDetailScreen(
+                                                cityName: city['name'],
+                                                badgeImagePath:
+                                                    'assets/images/badges/${city['badge']}',
+                                                stepRequired:
+                                                    city['stepRequired'],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       );
                     },
-                  );
-                },
-                child: Image.asset(
-                  'assets/images/badges/${city['badge']}',
-                  width: 40,
+                    child: Image.asset(
+                      'assets/images/badges/${city['badge']}',
+                      width: 40,
+                    ),
+                  ),
+                );
+              }).toList(),
+
+              /// 底部按钮组
+              Positioned(
+                bottom: 20,
+                left: 0,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    roundedButton(
+                      p: p,
+                      label: 'Home',
+                      icon: Icons.home_rounded,
+                      onPressed: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const ResponsiveMainScreen(initialIndex: 0)),
+                          (route) => false,
+                        );
+                      },
+                    ),
+                    roundedButton(
+                      p: p,
+                      label: 'Food Journey',
+                      icon: Icons.restaurant_rounded,
+                      onPressed: () {
+                        Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const ResponsiveMainScreen(
+                                        initialIndex: 1)),
+                            (route) => false);
+                      },
+                    ),
+                  ],
                 ),
               ),
-            );
-          }).toList(),
-
-          /// 底部按钮组
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                roundedButton(
-                  p: p,
-                  label: 'Home',
-                  icon: Icons.home_rounded,
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              const ResponsiveMainScreen(initialIndex: 0)),
-                      (route) => false,
-                    );
-                  },
-                ),
-                roundedButton(
-                  p: p,
-                  label: 'Food Journey',
-                  icon: Icons.restaurant_rounded,
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const ResponsiveMainScreen(initialIndex: 1)),
-                        (route) => false);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }

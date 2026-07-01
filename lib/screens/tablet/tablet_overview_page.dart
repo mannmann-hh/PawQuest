@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/step_provider.dart';
+import '../world_map_screen.dart';
 import 'tablet_dashboard_screen.dart';
 
 class TabletOverviewPage extends StatefulWidget {
@@ -18,8 +19,11 @@ class _TabletOverviewPageState extends State<TabletOverviewPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final steps = context.read<StepProvider>().todaySteps;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final stepProvider = context.read<StepProvider>();
+      await stepProvider.loadSavedSteps();
+      if (!mounted) return;
+      final steps = stepProvider.todaySteps;
       context.read<DailyQuestProvider>().loadTodayQuest(steps);
     });
   }
@@ -95,7 +99,7 @@ class _TabletOverviewPageState extends State<TabletOverviewPage> {
                   final columns = width >= 1200 ? 3 : 2;
                   return GridView.count(
                     crossAxisCount: columns,
-                    childAspectRatio: width >= 1200 ? 1.35 : 1.55,
+                    childAspectRatio: width >= 1200 ? 1.15 : 1.1,
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,
                     children: [
@@ -114,6 +118,11 @@ class _TabletOverviewPageState extends State<TabletOverviewPage> {
                         unlocked: unlocked,
                         total: cities.length,
                       ),
+                      _RouteOverviewCard(
+                        cities: cities,
+                        totalSteps: totalSteps,
+                      ),
+                      _WeeklyStepsCard(userId: user.uid),
                       const _LatestPostsCard(),
                     ],
                   );
@@ -320,6 +329,170 @@ class _BadgeSummaryCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RouteOverviewCard extends StatelessWidget {
+  final List<QueryDocumentSnapshot<Map<String, dynamic>>> cities;
+  final int totalSteps;
+
+  const _RouteOverviewCard({
+    required this.cities,
+    required this.totalSteps,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final unlockedCount = cities.where((city) {
+      final required = (city.data()['stepRequired'] as num?)?.toInt() ?? 0;
+      return totalSteps >= required;
+    }).length;
+    final progress = cities.isEmpty ? 0.0 : unlockedCount / cities.length;
+
+    return _InfoCard(
+      title: 'Italy Route Map',
+      icon: Icons.map_rounded,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$unlockedCount of ${cities.length} cities reached',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 10),
+          LinearProgressIndicator(value: progress),
+          const SizedBox(height: 14),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: 7,
+                runSpacing: 7,
+                children: cities.map((city) {
+                  final data = city.data();
+                  final required = (data['stepRequired'] as num?)?.toInt() ?? 0;
+                  final unlocked = totalSteps >= required;
+                  return Chip(
+                    avatar: Icon(
+                      unlocked ? Icons.check_circle : Icons.lock_outline,
+                      size: 17,
+                      color: unlocked ? Colors.green : Colors.grey,
+                    ),
+                    label: Text(data['name']?.toString() ?? 'City'),
+                    visualDensity: VisualDensity.compact,
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: TextButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const WorldMapScreen()),
+              ),
+              icon: const Icon(Icons.open_in_full_rounded),
+              label: const Text('Open full map'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WeeklyStepsCard extends StatelessWidget {
+  final String userId;
+
+  const _WeeklyStepsCard({required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    return _InfoCard(
+      title: 'Recent Activity',
+      icon: Icons.bar_chart_rounded,
+      child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('step_history')
+            .orderBy('date', descending: true)
+            .limit(7)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Text('Failed to load recent activity.');
+          }
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final days = snapshot.data!.docs.reversed.toList();
+          if (days.isEmpty) return const Text('No step history yet.');
+          final values = days
+              .map((day) => (day.data()['daily'] as num?)?.toInt() ?? 0)
+              .toList();
+          final maximum = values.fold<int>(1, (max, value) {
+            return value > max ? value : max;
+          });
+          final total =
+              values.fold<int>(0, (totalSoFar, value) => totalSoFar + value);
+          final average = total ~/ values.length;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: Text('7-day total\n$total steps')),
+                  Expanded(child: Text('Daily average\n$average steps')),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: List.generate(days.length, (index) {
+                    final date = days[index].data()['date']?.toString() ?? '';
+                    final height = 18 + (values[index] / maximum) * 90;
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              '${values[index]}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              height: height,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(7),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              date.length >= 5
+                                  ? date.substring(date.length - 5)
+                                  : date,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

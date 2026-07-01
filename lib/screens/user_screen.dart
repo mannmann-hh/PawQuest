@@ -15,8 +15,13 @@ import '../services/auth_service.dart';
 
 class UserScreen extends StatefulWidget {
   final AuthService? authService;
+  final bool showBottomNavigation;
 
-  const UserScreen({super.key, this.authService});
+  const UserScreen({
+    super.key,
+    this.authService,
+    this.showBottomNavigation = true,
+  });
 
   @override
   State<UserScreen> createState() => _UserScreenState();
@@ -239,17 +244,20 @@ class _UserScreenState extends State<UserScreen> {
                   ],
                 ),
               ),
-              bottomNavigationBar: CustomBottomBar(
-                currentIndex: 4,
-                onTap: (index) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ResponsiveMainScreen(initialIndex: index),
-                    ),
-                  );
-                },
-              ),
+              bottomNavigationBar: widget.showBottomNavigation
+                  ? CustomBottomBar(
+                      currentIndex: 4,
+                      onTap: (index) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                ResponsiveMainScreen(initialIndex: index),
+                          ),
+                        );
+                      },
+                    )
+                  : null,
             );
           },
         );

@@ -18,7 +18,6 @@ class StepProvider with ChangeNotifier {
 
   StreamSubscription<StepCount>? _subscription;
   int? _initialSensorSteps;
-  String? _activeDateKey;
   DailyQuestProvider? _dailyQuestProvider;
 
   final _auth = FirebaseAuth.instance;
@@ -34,7 +33,6 @@ class StepProvider with ChangeNotifier {
     if (uid == null) return;
 
     final dateStr = _todayDateKey();
-    _activeDateKey = dateStr;
 
     final doc = await _firestore.collection('users').doc(uid).get();
 
@@ -81,11 +79,7 @@ class StepProvider with ChangeNotifier {
     );
     if (delta == 0) return;
 
-    _currentStep += delta;
-    _todaySteps += delta;
     _initialSensorSteps = event.steps;
-
-    notifyListeners();
     await _saveToFirestore(delta);
   }
 
@@ -107,41 +101,68 @@ class StepProvider with ChangeNotifier {
     }
   }
 
+  /// Debug steps (SIMULATOR)
+  Future<void> addDebugSteps(int count) async {
+    await _saveToFirestore(count);
+  }
+
   /// ✅ CORRECT _saveToFirestore — only one version!
   Future<void> _saveToFirestore(int deltaSteps) async {
     final uid = _auth.currentUser?.uid;
-    if (uid == null) return;
-
-    final dateStr = _todayDateKey();
-    if (_activeDateKey != dateStr) {
-      _activeDateKey = dateStr;
-      _todaySteps = deltaSteps;
+    if (uid == null) {
+      _currentStep = StepMath.nonNegative(_currentStep + deltaSteps);
+      _todaySteps = StepMath.nonNegative(_todaySteps + deltaSteps);
+      notifyListeners();
+      return;
     }
 
-    final safeDailySteps = StepMath.nonNegative(_todaySteps);
-    notifyListeners();
-
-    // currentStep is the lifetime total. step_history.daily is today's steps.
-    await _firestore.collection('users').doc(uid).set({
-      'currentStep': _currentStep,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-
-    await _firestore
+    final dateStr = _todayDateKey();
+    final userRef = _firestore.collection('users').doc(uid);
+    final historyRef = _firestore
         .collection('users')
         .doc(uid)
         .collection('step_history')
-        .doc(dateStr)
-        .set({
-      'total': _currentStep,
-      'daily': safeDailySteps, // 防止负数
-      'date': dateStr,
-      'timestamp': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+        .doc(dateStr);
 
-    await _dailyQuestProvider?.syncSteps(safeDailySteps);
+    final saved =
+        await _firestore.runTransaction<(int, int)>((transaction) async {
+      final userSnapshot = await transaction.get(userRef);
+      final historySnapshot = await transaction.get(historyRef);
+      final serverTotal =
+          (userSnapshot.data()?['currentStep'] as num?)?.toInt() ?? 0;
+      final serverDaily =
+          (historySnapshot.data()?['daily'] as num?)?.toInt() ?? 0;
+      final newTotal = StepMath.nonNegative(serverTotal + deltaSteps);
+      final newDaily = StepMath.nonNegative(serverDaily + deltaSteps);
 
-    debugPrint("🔥 Daily steps saved: $safeDailySteps for $dateStr");
+      transaction.set(
+        userRef,
+        {
+          'currentStep': newTotal,
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+      transaction.set(
+        historyRef,
+        {
+          'total': newTotal,
+          'daily': newDaily,
+          'date': dateStr,
+          'timestamp': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+      return (newTotal, newDaily);
+    });
+
+    _currentStep = saved.$1;
+    _todaySteps = saved.$2;
+    notifyListeners();
+
+    await _dailyQuestProvider?.syncSteps(_todaySteps);
+
+    debugPrint("🔥 Daily steps saved: $_todaySteps for $dateStr");
   }
 
   /// Stop listener
