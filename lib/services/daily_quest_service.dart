@@ -4,7 +4,29 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/daily_quest_model.dart';
 import '../models/weather_model.dart';
 
-class DailyQuestService {
+abstract class DailyQuestRepository {
+  Future<DailyQuestModel> getOrCreateTodayQuest({
+    required int currentSteps,
+    WeatherModel? weather,
+  });
+
+  Future<DailyQuestModel> replaceTodayQuest({
+    required int currentSteps,
+    required WeatherModel weather,
+  });
+
+  Future<DailyQuestModel> updateTodayProgress(
+    int currentSteps, {
+    DailyQuestModel? existingQuest,
+  });
+
+  DailyQuestModel buildDefaultQuest({
+    required int currentSteps,
+    String? errorLocation,
+  });
+}
+
+class DailyQuestService implements DailyQuestRepository {
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
 
@@ -19,6 +41,7 @@ class DailyQuestService {
     return _dateKey(now);
   }
 
+  @override
   Future<DailyQuestModel> getOrCreateTodayQuest({
     required int currentSteps,
     WeatherModel? weather,
@@ -55,6 +78,7 @@ class DailyQuestService {
     return quest;
   }
 
+  @override
   Future<DailyQuestModel> replaceTodayQuest({
     required int currentSteps,
     required WeatherModel weather,
@@ -84,6 +108,7 @@ class DailyQuestService {
     return quest;
   }
 
+  @override
   Future<DailyQuestModel> updateTodayProgress(
     int currentSteps, {
     DailyQuestModel? existingQuest,
@@ -129,6 +154,7 @@ class DailyQuestService {
     return updated;
   }
 
+  @override
   DailyQuestModel buildDefaultQuest({
     required int currentSteps,
     String? errorLocation,

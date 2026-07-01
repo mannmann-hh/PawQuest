@@ -5,9 +5,19 @@ import 'register_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:pawquest/providers/theme_provider.dart';
 import 'package:pawquest/theme/app_palette.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final AuthService? authService;
+  final VoidCallback? onLoginSuccess;
+  final AppPalette? palette;
+
+  const LoginScreen({
+    super.key,
+    this.authService,
+    this.onLoginSuccess,
+    this.palette,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -18,9 +28,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  late final AuthService _authService;
   bool _isLoading = false;
   bool _obscure = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = widget.authService ?? FirebaseAuthService();
+  }
 
   @override
   void dispose() {
@@ -32,17 +48,23 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     setState(() => _isLoading = true);
     try {
-      await _auth.signInWithEmailAndPassword(
+      await _authService.signIn(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
       if (!mounted) return;
+      if (widget.onLoginSuccess != null) {
+        widget.onLoginSuccess!();
+        return;
+      }
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     } on FirebaseAuthException catch (e) {
       _showError(e.message ?? 'Login failed');
+    } catch (e) {
+      _showError(e.toString());
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -56,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    p = context.watch<ThemeProvider>().palette;
+    p = widget.palette ?? context.watch<ThemeProvider>().palette;
     return Scaffold(
       backgroundColor: p.background,
       body: Stack(
@@ -163,10 +185,9 @@ class _LoginScreenState extends State<LoginScreen> {
           backgroundColor: p.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18)),
-          textStyle:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         child: _isLoading
             ? const SizedBox(

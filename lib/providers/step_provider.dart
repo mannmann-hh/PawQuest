@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'daily_quest_provider.dart';
 import '../services/health_service.dart';
+import '../utils/step_math.dart';
 
 class StepProvider with ChangeNotifier {
   int _currentStep = 0;
@@ -72,8 +73,11 @@ class StepProvider with ChangeNotifier {
       return;
     }
 
-    int delta = event.steps - _initialSensorSteps!;
-    if (delta <= 0) return;
+    final delta = StepMath.sensorDelta(
+      previousReading: _initialSensorSteps!,
+      currentReading: event.steps,
+    );
+    if (delta == 0) return;
 
     _currentStep += delta;
     _todaySteps += delta;
@@ -112,7 +116,7 @@ class StepProvider with ChangeNotifier {
       _todaySteps = deltaSteps;
     }
 
-    final safeDailySteps = _todaySteps < 0 ? 0 : _todaySteps;
+    final safeDailySteps = StepMath.nonNegative(_todaySteps);
     notifyListeners();
 
     // currentStep is the lifetime total. step_history.daily is today's steps.

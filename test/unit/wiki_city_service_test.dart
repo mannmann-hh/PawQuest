@@ -61,4 +61,15 @@ void main() {
     expect(info.landmark, isNull);
     expect(info.history?.title, 'History of Rome');
   });
+
+  test('fails when the required main city request fails', () async {
+    final service = WikiCityService(
+      client: MockClient((_) async => http.Response('', 503)),
+    );
+
+    expect(
+      () => service.fetchCityInfo('Rome'),
+      throwsA(isA<Exception>()),
+    );
+  });
 }

@@ -6,11 +6,21 @@ import 'package:http/http.dart' as http;
 
 import '../models/weather_model.dart';
 
-class WeatherService {
+abstract class WeatherRepository {
+  Future<WeatherModel> fetchCurrentWeather();
+
+  Future<WeatherModel> fetchWeatherByCoordinates({
+    required double latitude,
+    required double longitude,
+  });
+}
+
+class WeatherService implements WeatherRepository {
   final http.Client _client;
 
   WeatherService({http.Client? client}) : _client = client ?? http.Client();
 
+  @override
   Future<WeatherModel> fetchCurrentWeather() async {
     final position = await _getCurrentPosition();
     return fetchWeatherByCoordinates(
@@ -19,10 +29,18 @@ class WeatherService {
     );
   }
 
+  @override
   Future<WeatherModel> fetchWeatherByCoordinates({
     required double latitude,
     required double longitude,
   }) async {
+    if (!latitude.isFinite || latitude < -90 || latitude > 90) {
+      throw WeatherException('Latitude must be between -90 and 90.');
+    }
+    if (!longitude.isFinite || longitude < -180 || longitude > 180) {
+      throw WeatherException('Longitude must be between -180 and 180.');
+    }
+
     final apiKey = dotenv.env['OPENWEATHER_API_KEY'] ?? '';
 
     if (apiKey.isEmpty || apiKey == 'your_api_key_here') {

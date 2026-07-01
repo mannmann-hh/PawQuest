@@ -6,12 +6,12 @@ import '../services/daily_quest_service.dart';
 import '../services/weather_service.dart';
 
 class DailyQuestProvider with ChangeNotifier {
-  final DailyQuestService _dailyQuestService;
-  final WeatherService _weatherService;
+  final DailyQuestRepository _dailyQuestService;
+  final WeatherRepository _weatherService;
 
   DailyQuestProvider({
-    DailyQuestService? dailyQuestService,
-    WeatherService? weatherService,
+    DailyQuestRepository? dailyQuestService,
+    WeatherRepository? weatherService,
   })  : _dailyQuestService = dailyQuestService ?? DailyQuestService(),
         _weatherService = weatherService ?? WeatherService();
 

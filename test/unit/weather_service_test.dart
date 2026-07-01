@@ -77,4 +77,38 @@ void main() {
       ),
     );
   });
+
+  test('rejects invalid and non-finite coordinates before making a request',
+      () async {
+    dotenv.testLoad(fileInput: 'OPENWEATHER_API_KEY=test-key');
+    var requestCount = 0;
+    final service = WeatherService(
+      client: MockClient((_) async {
+        requestCount++;
+        return http.Response('{}', 200);
+      }),
+    );
+
+    await expectLater(
+      service.fetchWeatherByCoordinates(latitude: 91, longitude: 0),
+      throwsA(isA<WeatherException>()),
+    );
+    await expectLater(
+      service.fetchWeatherByCoordinates(latitude: 0, longitude: double.nan),
+      throwsA(isA<WeatherException>()),
+    );
+    expect(requestCount, 0);
+  });
+
+  test('reports malformed JSON returned by the weather server', () async {
+    dotenv.testLoad(fileInput: 'OPENWEATHER_API_KEY=test-key');
+    final service = WeatherService(
+      client: MockClient((_) async => http.Response('not-json', 200)),
+    );
+
+    expect(
+      () => service.fetchWeatherByCoordinates(latitude: 0, longitude: 0),
+      throwsA(isA<FormatException>()),
+    );
+  });
 }

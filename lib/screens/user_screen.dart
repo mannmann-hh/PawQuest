@@ -11,9 +11,12 @@ import 'step_history_screen.dart';
 import '../widgets/custom_bottom_bar.dart';
 import 'main_screen.dart';
 import 'login_screen.dart';
+import '../services/auth_service.dart';
 
 class UserScreen extends StatefulWidget {
-  const UserScreen({super.key});
+  final AuthService? authService;
+
+  const UserScreen({super.key, this.authService});
 
   @override
   State<UserScreen> createState() => _UserScreenState();
@@ -27,9 +30,10 @@ class _UserScreenState extends State<UserScreen> {
 
   Future<void> _logout(BuildContext context) async {
     final sp = context.read<StepProvider>();
-    sp.disposeListener();
-    sp.resetSteps();
-    await FirebaseAuth.instance.signOut();
+    await LogoutCoordinator(widget.authService ?? FirebaseAuthService()).logout(
+      stopStepListener: sp.disposeListener,
+      resetSteps: sp.resetSteps,
+    );
     if (!context.mounted) return;
     Navigator.pushReplacement(
       context,
@@ -104,8 +108,7 @@ class _UserScreenState extends State<UserScreen> {
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF4A4A4A))),
                       trailing: selected
-                          ? Icon(Icons.check_circle_rounded,
-                              color: pal.primary)
+                          ? Icon(Icons.check_circle_rounded, color: pal.primary)
                           : null,
                     );
                   }).toList(),
@@ -272,7 +275,8 @@ class _UserScreenState extends State<UserScreen> {
         color: p.surface,
         borderRadius: BorderRadius.circular(26),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
         ],
       ),
       child: Column(
