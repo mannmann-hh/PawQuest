@@ -5,12 +5,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'daily_quest_provider.dart';
+import '../services/health_service.dart';
 
 class StepProvider with ChangeNotifier {
   int _currentStep = 0;
   int _todaySteps = 0;
   int get steps => _currentStep;
   int get todaySteps => _todaySteps;
+
+  final HealthService _health = HealthService();
 
   StreamSubscription<StepCount>? _subscription;
   int? _initialSensorSteps;
@@ -80,12 +83,22 @@ class StepProvider with ChangeNotifier {
     await _saveToFirestore(delta);
   }
 
-  /// Debug steps (SIMULATOR)
-  void addDebugSteps(int count) async {
-    _currentStep += count;
-    _todaySteps += count;
-    notifyListeners();
-    await _saveToFirestore(count);
+  /// Request Apple Health authorization (iOS). Safe no-op elsewhere.
+  Future<bool> requestHealthAccess() => _health.requestAuthorization();
+
+  /// Read today's steps from Apple Health and reconcile with local state.
+  /// Only adds the positive difference so we never double-count against the
+  /// pedometer stream. Safe to call on launch and on app resume.
+  Future<void> syncFromHealth() async {
+    final healthToday = await _health.todaySteps();
+    if (healthToday == null) return;
+    if (healthToday > _todaySteps) {
+      final delta = healthToday - _todaySteps;
+      _currentStep += delta;
+      _todaySteps = healthToday;
+      notifyListeners();
+      await _saveToFirestore(delta);
+    }
   }
 
   /// ✅ CORRECT _saveToFirestore — only one version!

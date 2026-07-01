@@ -100,7 +100,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(14),
                       child: Image.asset(
-                        'assets/images/food/${widget.filename}',
+                        'assets/images/real_food/${widget.filename}',
                         height: 220,
                         fit: BoxFit.contain,
                       ),

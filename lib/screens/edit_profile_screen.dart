@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:pawquest/providers/theme_provider.dart';
 import 'package:pawquest/theme/app_palette.dart';
+import 'package:pawquest/widgets/user_avatar.dart';
 
 /// Unified "edit user info" screen: change display name and character (and,
 /// later, avatar) in one place.
@@ -80,6 +81,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'cat': _selectedCat,
         'avatarUrl': _avatarUrl,
       });
+      // Drop the cached avatar so the new photo shows immediately everywhere.
+      UserAvatar.invalidate(user.uid);
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {

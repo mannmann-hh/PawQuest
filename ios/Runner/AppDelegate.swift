@@ -1,9 +1,12 @@
 import Flutter
 import UIKit
 import WatchConnectivity
+import HealthKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, WCSessionDelegate {
+
+  private let healthStore = HKHealthStore()
 
   override func application(
     _ application: UIApplication,
@@ -23,6 +26,19 @@ import WatchConnectivity
           result(FlutterMethodNotImplemented)
         }
       }
+
+      let healthChannel = FlutterMethodChannel(
+        name: "pawquest/health", binaryMessenger: controller.binaryMessenger)
+      healthChannel.setMethodCallHandler { [weak self] (call, result) in
+        switch call.method {
+        case "requestAuthorization":
+          self?.requestHealthAuth(result)
+        case "todaySteps":
+          self?.readTodaySteps(result)
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+      }
     }
 
     if WCSession.isSupported() {
@@ -32,6 +48,34 @@ import WatchConnectivity
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  private func requestHealthAuth(_ result: @escaping FlutterResult) {
+    guard HKHealthStore.isHealthDataAvailable(),
+          let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else {
+      result(false); return
+    }
+    healthStore.requestAuthorization(toShare: [], read: [stepType]) { ok, _ in
+      DispatchQueue.main.async { result(ok) }
+    }
+  }
+
+  private func readTodaySteps(_ result: @escaping FlutterResult) {
+    guard HKHealthStore.isHealthDataAvailable(),
+          let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else {
+      result(nil); return
+    }
+    let start = Calendar.current.startOfDay(for: Date())
+    let predicate = HKQuery.predicateForSamples(
+      withStart: start, end: Date(), options: .strictStartDate)
+    let query = HKStatisticsQuery(
+      quantityType: stepType, quantitySamplePredicate: predicate,
+      options: .cumulativeSum
+    ) { _, stats, _ in
+      let steps = stats?.sumQuantity()?.doubleValue(for: HKUnit.count()) ?? 0
+      DispatchQueue.main.async { result(Int(steps)) }
+    }
+    healthStore.execute(query)
   }
 
   private func sendToWatch(_ data: [String: Any]) -> [String: Any] {

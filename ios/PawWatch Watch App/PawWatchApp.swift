@@ -12,7 +12,7 @@ struct PawWatchApp: App {
     @StateObject private var health = HealthModel()
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainView()
                 .environmentObject(health)
                 .onAppear { health.start() }
         }

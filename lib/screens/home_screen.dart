@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pawquest/providers/step_provider.dart';
@@ -38,20 +37,35 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadStepsAndUpdateProvider(context);
       if (!mounted) return;
       final sp = Provider.of<StepProvider>(context, listen: false);
       sp.startListening();
+      sp.requestHealthAccess().then((_) => sp.syncFromHealth());
       final dq = context.read<DailyQuestProvider>();
       if (dq.weather == null && !dq.isLoading) {
         dq.loadTodayQuest(sp.todaySteps);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      context.read<StepProvider>().syncFromHealth();
+    }
   }
 
   Future<List<City>> loadCities(BuildContext context) async {
@@ -107,7 +121,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final p = context.watch<ThemeProvider>().palette;
     final steps = context.watch<StepProvider>().steps;
-    final stepProvider = Provider.of<StepProvider>(context, listen: false);
     final weather = context.watch<DailyQuestProvider>().weather;
     final user = FirebaseAuth.instance.currentUser;
 
@@ -225,25 +238,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              if (kDebugMode)
-                Positioned(
-                  top: 48,
-                  left: 18,
-                  child: Opacity(
-                    opacity: 0.85,
-                    child: TextButton(
-                      onPressed: () => stepProvider.addDebugSteps(1000),
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.black.withValues(alpha: 0.35),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        minimumSize: const Size(0, 0),
-                      ),
-                      child: const Text('+1000', style: TextStyle(fontSize: 12)),
-                    ),
-                  ),
-                ),
             ],
           ),
         );

@@ -32,6 +32,12 @@
 		<string>_dartobservatory._tcp
 </string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string></string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>PawQuest reads your step count from Apple Health to track walking progress and unlock cities.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>PawQuest can sync your steps with Apple Health.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Allow local network access for Flutter’s hot reload and debugging.
 Allow local network access for Flutter’s hot reload and debugging.
@@ -40,14 +46,12 @@ Allow local network access for Flutter’s hot reload and debugging.
 	<string>PawQuest uses your location to fetch local weather and create daily walking quests.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>PawQuest needs your location to show current weather and generate your Daily Quest.</string>
-	<key>NSCameraUsageDescription</key>
+	<key>NSMotionUsageDescription</key>
+	<string>Allow access to motion and fitness data to track your steps and progress in the app.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>PawQuest needs access to your photos so you can set a profile picture.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string></string>
-	<key>NSMotionUsageDescription</key>
-	<string>Allow access to motion and fitness data to track your steps and progress in the app.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
