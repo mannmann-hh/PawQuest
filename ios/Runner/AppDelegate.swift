@@ -11,23 +11,20 @@ import WatchConnectivity
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
 
-    // Platform channel used by Flutter (WatchService) to push state to the watch.
     if let controller = window?.rootViewController as? FlutterViewController {
-      let channel = FlutterMethodChannel(
-        name: "pawquest/watch",
-        binaryMessenger: controller.binaryMessenger)
-      channel.setMethodCallHandler { [weak self] (call, result) in
+      let watchChannel = FlutterMethodChannel(
+        name: "pawquest/watch", binaryMessenger: controller.binaryMessenger)
+      watchChannel.setMethodCallHandler { [weak self] (call, result) in
         if call.method == "updateContext",
            let args = call.arguments as? [String: Any] {
-          self?.sendToWatch(args)
-          result(nil)
+          let status = self?.sendToWatch(args) ?? ["supported": false]
+          result(status)
         } else {
           result(FlutterMethodNotImplemented)
         }
       }
     }
 
-    // Activate the WatchConnectivity session.
     if WCSession.isSupported() {
       let session = WCSession.default
       session.delegate = self
@@ -37,18 +34,35 @@ import WatchConnectivity
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  private func sendToWatch(_ data: [String: Any]) {
-    guard WCSession.isSupported() else { return }
+  private func sendToWatch(_ data: [String: Any]) -> [String: Any] {
+    guard WCSession.isSupported() else { return ["supported": false] }
     let session = WCSession.default
-    guard session.activationState == .activated else { return }
+    var status: [String: Any] = [
+      "supported": true,
+      "activation": session.activationState.rawValue,
+      "paired": session.isPaired,
+      "watchAppInstalled": session.isWatchAppInstalled,
+      "reachable": session.isReachable
+    ]
+    guard session.activationState == .activated else {
+      status["sent"] = false
+      return status
+    }
     do {
       try session.updateApplicationContext(data)
+      status["appContext"] = "ok"
     } catch {
-      NSLog("PawQuest: updateApplicationContext failed: \(error.localizedDescription)")
+      status["appContext"] = "failed: \(error.localizedDescription)"
     }
+    if session.isReachable {
+      session.sendMessage(data, replyHandler: nil, errorHandler: nil)
+      status["message"] = "sent"
+    } else {
+      status["message"] = "not reachable"
+    }
+    return status
   }
 
-  // MARK: - WCSessionDelegate (required stubs)
   func session(_ session: WCSession,
                activationDidCompleteWith activationState: WCSessionActivationState,
                error: Error?) {}

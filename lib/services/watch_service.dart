@@ -2,13 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Pushes the latest app state to a paired Apple Watch.
-///
-/// On iOS this talks to native code (see `AppDelegate.swift`) which forwards
-/// the payload to the watch through `WCSession.updateApplicationContext`.
-/// On any other platform, or when no watch is reachable, calls are silently
-/// ignored. Identical consecutive payloads are de-duplicated so we don't spam
-/// the connectivity session on every widget rebuild.
 class WatchService {
   WatchService._();
   static final WatchService instance = WatchService._();
@@ -20,14 +13,15 @@ class WatchService {
     final encoded = jsonEncode(data);
     if (encoded == _lastPayload) return;
     _lastPayload = encoded;
+    debugPrint('PawQuest watch: sync steps=${data['steps']} theme=${data['themeBg']}');
     try {
-      await _channel.invokeMethod('updateContext', data);
-    } catch (_) {
-      // Watch not reachable, or not running on iOS — ignore.
+      final res = await _channel.invokeMethod('updateContext', data);
+      debugPrint('PawQuest watch: native -> $res');
+    } catch (e) {
+      debugPrint('PawQuest watch: channel error -> $e');
     }
   }
 
-  /// "#RRGGBB" string for a Color, for sending the active theme to the watch.
   static String hex(Color c) =>
       '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
 }
